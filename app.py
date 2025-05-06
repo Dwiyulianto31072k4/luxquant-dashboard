@@ -7,10 +7,15 @@ import pandas as pd
 import altair as alt
 import datetime
 import re
+from pathlib import Path
 
 # -------- GOOGLE SHEETS CONFIGURATION --------
 SPREADSHEET_ID = "1g3XL1EllHoWV3jhmi7gT3at6MtCNTJBo8DQ1WyWhMEo"  # You can replace this with your sheet ID
 SHEET_NAME = "Sheet1"
+
+# -------- IMAGE PATH --------
+# Path to the image relative to the app.py file
+IMAGE_PATH = "logo.png"  # Ganti dengan nama file gambar Anda
 
 # -------- LANGUAGE SETTINGS --------
 # Dictionary with text in multiple languages (Indonesian and English)
@@ -502,6 +507,23 @@ def main():
             st.experimental_rerun()
     
     st.title(lang["main_title"])
+    
+    # Tambahkan gambar di bawah judul
+    # Coba cari gambar dari direktori lokal atau dari GitHub
+    try:
+        # Untuk Streamlit Cloud dan GitHub, gunakan format ini
+        from PIL import Image
+        
+        # Cek apakah file gambar ada di direktori saat ini
+        image_path = Path(IMAGE_PATH)
+        if image_path.exists():
+            st.image(IMAGE_PATH, use_column_width=True)
+        else:
+            # Alternatif jika gambar tidak ditemukan
+            st.warning(f"Gambar {IMAGE_PATH} tidak ditemukan. Pastikan file gambar tersedia di repositori GitHub Anda.")
+    except Exception as e:
+        st.warning(f"Tidak dapat menampilkan gambar: {str(e)}")
+    
     st.markdown(lang["app_description"])
     
     # Period selector
