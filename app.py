@@ -380,25 +380,6 @@ def calculate_statistics(df):
         'total_sl': int(sl_data.sum()),
     }
     
-    # Calculate winrate for each row properly
-    if 'Winrate_num' in df.columns:
-        # Use precomputed winrate values if available
-        valid_winrates = df['Winrate_num'][df['Winrate_num'] > 0]
-        if not valid_winrates.empty:
-            stats['avg_winrate'] = valid_winrates.mean()
-        else:
-            stats['avg_winrate'] = 0
-    else:
-        # Calculate from TP and SL values
-        row_winrates = []
-        for i, row in df.iterrows():
-            tp = pd.to_numeric(row[tp_col], errors='coerce')
-            sl = pd.to_numeric(row[sl_col], errors='coerce')
-            if tp + sl > 0:
-                row_winrates.append(100 * tp / (tp + sl))
-        
-        stats['avg_winrate'] = sum(row_winrates) / len(row_winrates) if row_winrates else 0
-    
     # Calculate overall winrate from totals
     if stats['total_tp'] + stats['total_sl'] > 0:
         stats['overall_winrate'] = 100 * stats['total_tp'] / (stats['total_tp'] + stats['total_sl'])
@@ -589,14 +570,14 @@ def main():
                             st.markdown(lang["stats_summary_title"])
                             
                             col1, col2, col3 = st.columns(3)
-                            col1.metric(lang["avg_winrate"], f"{stats['avg_winrate']:.1f}%")
+                            col1.metric(lang["total_signals"], int(stats['total_signals']))
                             col2.metric(lang["total_tp"], int(stats['total_tp']))
                             col3.metric(lang["total_sl"], int(stats['total_sl']))
                             
                             col4, col5, col6 = st.columns(3)
-                            col4.metric(lang["total_signals"], int(stats['total_signals']))
-                            col5.metric(lang["overall_winrate"], f"{stats['overall_winrate']:.1f}%")
-                            col6.metric(lang["completion_rate"], f"{stats['completion_rate']:.1f}%")
+                            col4.metric(lang["overall_winrate"], f"{stats['overall_winrate']:.1f}%")
+                            col5.metric(lang["completion_rate"], f"{stats['completion_rate']:.1f}%")
+                            # col6 dibiarkan kosong
                         
                         # Create and display charts
                         st.markdown(lang["winrate_chart_title"])
