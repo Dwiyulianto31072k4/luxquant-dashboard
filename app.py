@@ -281,8 +281,14 @@ def get_sheet_data():
                 for idx in range(len(df)):
                     df.at[idx, 'Date_parsed'] = pd.to_datetime('today') - pd.Timedelta(days=len(df)-idx-1)
         
-        # Create a display column for the x-axis in charts
-        df['Date_display'] = df[date_column] if date_column else (df.index + 1).astype(str)
+        # Sort DataFrame by parsed date
+        if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
+            df = df.sort_values('Date_parsed')
+            # Create a formatted date display string that will be properly sorted
+            df['Date_display'] = df['Date_parsed'].dt.strftime('%Y-%m-%d')
+        else:
+            # Create a display column for the x-axis in charts if no date is available
+            df['Date_display'] = df[date_column] if date_column else (df.index + 1).astype(str)
         
         # Add derived columns for analysis
         if 'TP' in df.columns and 'SL' in df.columns:
@@ -422,9 +428,14 @@ def create_winrate_chart(df, lang):
     # Sort by date if available
     if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
         df = df.sort_values('Date_parsed')
+        # Create a new column for sorting order
+        df['sort_index'] = range(len(df))
+    
+    # Use a custom domain for the x-axis to ensure proper ordering
+    domain = df['Date_display'].tolist()
     
     chart = alt.Chart(df).mark_line(point=True).encode(
-        x=alt.X('Date_display:O', title=lang['date'], sort=None),
+        x=alt.X('Date_display:O', title=lang['date'], sort=domain),
         y=alt.Y('Winrate_num:Q', title=lang['winrate'] + ' (%)', scale=alt.Scale(domain=[0, 100])),
         tooltip=['Date_display', 'Winrate_num', alt.Tooltip('TP', title='TP'), alt.Tooltip('SL', title='SL')]
     ).properties(height=300)
@@ -462,8 +473,11 @@ def create_tpsl_chart(df, lang):
         value_name='Count'
     )
     
+    # Use a custom domain for the x-axis to ensure proper ordering
+    domain = df['Date_display'].tolist()
+    
     chart = alt.Chart(df_melted).mark_bar().encode(
-        x=alt.X('Date_display:O', title=lang['date']),
+        x=alt.X('Date_display:O', title=lang['date'], sort=domain),
         y=alt.Y('Count:Q', title='Count'),
         color=alt.Color('Type:N', scale=alt.Scale(
             domain=['TP', 'SL'],
@@ -597,9 +611,15 @@ def main():
                         if winrate_col:
                             display_cols.append(winrate_col)
                         
+                        # Sort dataframe by Date_parsed before displaying
+                        if 'Date_parsed' in filtered_df.columns and not filtered_df['Date_parsed'].isna().all():
+                            display_df = filtered_df.sort_values('Date_parsed')
+                        else:
+                            display_df = filtered_df
+                        
                         # Display the data table with specified columns or all columns if none specified
                         st.dataframe(
-                            filtered_df[display_cols] if display_cols else filtered_df,
+                            display_df[display_cols] if display_cols else display_df,
                             use_container_width=True
                         )
             
