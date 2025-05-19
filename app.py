@@ -283,9 +283,18 @@ def get_sheet_data():
         
         # Sort DataFrame by parsed date
         if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
+            # Make sure Date_parsed is actually datetime type before using dt accessor
+            df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
             df = df.sort_values('Date_parsed')
             # Create a formatted date display string that will be properly sorted
-            df['Date_display'] = df['Date_parsed'].dt.strftime('%Y-%m-%d')
+            # Only use dt accessor on non-null values
+            mask = ~df['Date_parsed'].isna()
+            df.loc[mask, 'Date_display'] = df.loc[mask, 'Date_parsed'].dt.strftime('%Y-%m-%d')
+            # For null values, use original date column or index
+            if date_column:
+                df.loc[~mask, 'Date_display'] = df.loc[~mask, date_column]
+            else:
+                df.loc[~mask, 'Date_display'] = (df.loc[~mask].index + 1).astype(str)
         else:
             # Create a display column for the x-axis in charts if no date is available
             df['Date_display'] = df[date_column] if date_column else (df.index + 1).astype(str)
@@ -427,9 +436,10 @@ def create_winrate_chart(df, lang):
     
     # Sort by date if available
     if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
+        # Make sure we're working with clean data
+        df = df.copy()
+        df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
         df = df.sort_values('Date_parsed')
-        # Create a new column for sorting order
-        df['sort_index'] = range(len(df))
     
     # Use a custom domain for the x-axis to ensure proper ordering
     domain = df['Date_display'].tolist()
@@ -456,6 +466,9 @@ def create_tpsl_chart(df, lang):
     
     # Sort by date if available
     if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
+        # Make sure we're working with clean data
+        df = df.copy()
+        df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
         df = df.sort_values('Date_parsed')
     
     # Create a copy with required columns for melting
@@ -612,8 +625,14 @@ def main():
                             display_cols.append(winrate_col)
                         
                         # Sort dataframe by Date_parsed before displaying
-                        if 'Date_parsed' in filtered_df.columns and not filtered_df['Date_parsed'].isna().all():
-                            display_df = filtered_df.sort_values('Date_parsed')
+                        if 'Date_parsed' in filtered_df.columns:
+                            # Ensure Date_parsed is datetime type
+                            filtered_df['Date_parsed'] = pd.to_datetime(filtered_df['Date_parsed'], errors='coerce')
+                            # Only sort if we have valid dates
+                            if not filtered_df['Date_parsed'].isna().all():
+                                display_df = filtered_df.sort_values('Date_parsed')
+                            else:
+                                display_df = filtered_df
                         else:
                             display_df = filtered_df
                         
