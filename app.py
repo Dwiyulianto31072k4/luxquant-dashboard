@@ -10,15 +10,13 @@ import re
 from pathlib import Path
 
 # -------- GOOGLE SHEETS CONFIGURATION --------
-SPREADSHEET_ID = "1g3XL1EllHoWV3jhmi7gT3at6MtCNTJBo8DQ1WyWhMEo"  # You can replace this with your sheet ID
+SPREADSHEET_ID = "1g3XL1EllHoWV3jhmi7gT3at6MtCNTJBo8DQ1WyWhMEo"
 SHEET_NAME = "Sheet1"
 
 # -------- IMAGE PATH --------
-# Path to the image relative to the app.py file
-IMAGE_PATH = "logo.png"  # Ganti dengan nama file gambar Anda
+IMAGE_PATH = "logo.png"
 
 # -------- LANGUAGE SETTINGS --------
-# Dictionary with text in multiple languages (Indonesian and English)
 LANGUAGES = {
     "id": {
         "page_title": "Trading Statistics | LuxQuant VIP | 智汇尊享会",
@@ -188,120 +186,132 @@ def get_sheet_data():
     last_index = 0
     for i, row in enumerate(data_rows):
         # Consider a row non-empty if it has values in essential columns
-        if any(row[:5]):  # Check first 5 columns which should contain date, signals, etc.
+        if any(row[:6]):  # Check first 6 columns
             last_index = i
     
     # Get only rows up to the last non-empty row
-    valid_data_rows = data_rows[:last_index + 1]
+    valid_data_rows = data_rows[:last_index + 1] if data_rows else []
     
     # Convert to DataFrame
     if valid_data_rows:
         df = pd.DataFrame(valid_data_rows, columns=header_row)
         
-        # Process numeric columns
-        # First, identify potential numeric columns
-        numeric_columns = []
-        date_column = None
-        winrate_column = None
+        # Remove empty rows where all essential columns are empty
+        df = df[df.iloc[:, :6].any(axis=1)]
         
+        if df.empty:
+            return None
+        
+        # Clean column names
+        df.columns = df.columns.str.strip()
+        
+        # Process columns based on expected structure from the images
+        # Expected columns: Date, Total_Signal, Finished, TP, SL, Winrate_pct
+        
+        # Find column mappings (case insensitive and flexible matching)
+        column_mapping = {}
         for col in df.columns:
-            col_lower = col.lower()
-            # Identify date column
-            if 'date' in col_lower or 'tanggal' in col_lower or 'tgl' in col_lower:
-                date_column = col
-            # Identify potential numeric columns
-            elif any(kw in col_lower for kw in ['signal', 'tp', 'sl', 'finish']):
-                numeric_columns.append(col)
-            # Identify winrate column
-            elif 'winrate' in col_lower or 'win rate' in col_lower or 'win_rate' in col_lower:
-                winrate_column = col
+            col_lower = col.lower().strip()
+            if any(keyword in col_lower for keyword in ['date', 'tanggal', 'tgl']):
+                column_mapping['Date'] = col
+            elif any(keyword in col_lower for keyword in ['total', 'signal']):
+                column_mapping['Total_Signal'] = col
+            elif 'finish' in col_lower:
+                column_mapping['Finished'] = col
+            elif col_lower == 'tp':
+                column_mapping['TP'] = col
+            elif col_lower == 'sl':
+                column_mapping['SL'] = col
+            elif any(keyword in col_lower for keyword in ['winrate', 'win_rate', 'win rate']):
+                column_mapping['Winrate_pct'] = col
         
-        # Convert numeric columns
+        # Rename columns to standard names
+        df = df.rename(columns=column_mapping)
+        
+        # Process numeric columns
+        numeric_columns = ['Total_Signal', 'Finished', 'TP', 'SL']
         for col in numeric_columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
+            if col in df.columns:
+                # Clean the data first (remove any non-numeric characters except numbers)
+                df[col] = df[col].astype(str).str.replace(r'[^\d]', '', regex=True)
+                df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
         
-        # Process winrate column (e.g., "85.5%" -> 85.5)
-        if winrate_column:
-            df['Winrate_num'] = df[winrate_column].astype(str).str.rstrip('%').replace('', '0')
+        # Process winrate column
+        if 'Winrate_pct' in df.columns:
+            # Handle percentage format (e.g., "85.5%" -> 85.5)
+            df['Winrate_num'] = df['Winrate_pct'].astype(str).str.replace('%', '').str.strip()
             df['Winrate_num'] = pd.to_numeric(df['Winrate_num'], errors='coerce').fillna(0)
         
-        # Process date column
-        if date_column:
-            # Create a new column for the parsed date
+        # Process date column with improved parsing for range dates
+        if 'Date' in df.columns:
             df['Date_parsed'] = None
+            df['Date_display'] = df['Date'].astype(str)
             
-            # Use regex to extract date patterns from the date strings
-            for idx, date_str in enumerate(df[date_column]):
-                if pd.isna(date_str) or date_str == '':
+            for idx, date_str in enumerate(df['Date']):
+                if pd.isna(date_str) or date_str == '' or str(date_str).strip() == '':
                     continue
                 
-                # Try different date patterns
-                # Pattern for dates like "18 April 2023", "18 Apr 2023"
-                day_month_year = re.search(r'(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})', str(date_str))
-                if day_month_year:
-                    day, month, year = day_month_year.groups()
+                date_str = str(date_str).strip()
+                
+                # Handle date ranges like "05/22-05/23", "05/26-05/27"
+                range_pattern = re.search(r'(\d{2})/(\d{2})-(\d{2})/(\d{2})', date_str)
+                if range_pattern:
+                    start_month, start_day, end_month, end_day = range_pattern.groups()
+                    # Use the end date for sorting (more recent)
                     try:
-                        date_obj = pd.to_datetime(f"{day} {month} {year}", format='%d %B %Y', errors='coerce')
-                        if pd.isna(date_obj):
-                            date_obj = pd.to_datetime(f"{day} {month} {year}", format='%d %b %Y', errors='coerce')
-                        df.at[idx, 'Date_parsed'] = date_obj
+                        # Assume current year if not specified
+                        current_year = datetime.datetime.now().year
+                        end_date = pd.to_datetime(f"{current_year}-{end_month}-{end_day}", format='%Y-%m-%d')
+                        df.at[idx, 'Date_parsed'] = end_date
+                        # Create a better display format
+                        df.at[idx, 'Date_display'] = f"2025-{end_month}-{end_day}"
                         continue
                     except:
                         pass
                 
-                # Pattern for dates like "2023-04-18", "2023/04/18"
-                year_month_day = re.search(r'(\d{4})[-/](\d{1,2})[-/](\d{1,2})', str(date_str))
-                if year_month_day:
-                    year, month, day = year_month_day.groups()
-                    try:
-                        df.at[idx, 'Date_parsed'] = pd.to_datetime(f"{year}-{month}-{day}", format='%Y-%m-%d')
-                        continue
-                    except:
-                        pass
+                # Handle simple date formats
+                date_patterns = [
+                    r'(\d{4})-(\d{1,2})-(\d{1,2})',  # YYYY-MM-DD
+                    r'(\d{1,2})/(\d{1,2})/(\d{4})',  # MM/DD/YYYY
+                    r'(\d{1,2})-(\d{1,2})-(\d{4})',  # MM-DD-YYYY
+                ]
                 
-                # Pattern for dates like "04/18/2023", "04-18-2023"
-                month_day_year = re.search(r'(\d{1,2})[-/](\d{1,2})[-/](\d{4})', str(date_str))
-                if month_day_year:
-                    month, day, year = month_day_year.groups()
-                    try:
-                        df.at[idx, 'Date_parsed'] = pd.to_datetime(f"{year}-{month}-{day}", format='%Y-%m-%d')
-                        continue
-                    except:
-                        pass
+                parsed = False
+                for pattern in date_patterns:
+                    match = re.search(pattern, date_str)
+                    if match:
+                        try:
+                            if pattern == date_patterns[0]:  # YYYY-MM-DD
+                                year, month, day = match.groups()
+                            else:  # MM/DD/YYYY or MM-DD-YYYY
+                                month, day, year = match.groups()
+                            
+                            parsed_date = pd.to_datetime(f"{year}-{month}-{day}", format='%Y-%m-%d')
+                            df.at[idx, 'Date_parsed'] = parsed_date
+                            df.at[idx, 'Date_display'] = parsed_date.strftime('%Y-%m-%d')
+                            parsed = True
+                            break
+                        except:
+                            continue
                 
-                # If all specific patterns fail, try generic parsing as a last resort
-                try:
-                    df.at[idx, 'Date_parsed'] = pd.to_datetime(date_str, errors='coerce')
-                except:
-                    # If parsing fails, use index as an ordinal date
-                    df.at[idx, 'Date_parsed'] = pd.to_datetime('today') - pd.Timedelta(days=len(df)-idx-1)
-            
-            # If date parsing failed, use index as an ordinal date
-            if df['Date_parsed'].isna().all():
-                for idx in range(len(df)):
-                    df.at[idx, 'Date_parsed'] = pd.to_datetime('today') - pd.Timedelta(days=len(df)-idx-1)
+                # If still not parsed, use a default approach
+                if not parsed:
+                    try:
+                        # Try pandas built-in parsing as last resort
+                        parsed_date = pd.to_datetime(date_str, errors='coerce')
+                        if not pd.isna(parsed_date):
+                            df.at[idx, 'Date_parsed'] = parsed_date
+                            df.at[idx, 'Date_display'] = parsed_date.strftime('%Y-%m-%d')
+                    except:
+                        # Use index-based date if all parsing fails
+                        base_date = datetime.datetime.now() - pd.Timedelta(days=len(df)-idx-1)
+                        df.at[idx, 'Date_parsed'] = base_date
+                        df.at[idx, 'Date_display'] = base_date.strftime('%Y-%m-%d')
         
-        # Sort DataFrame by parsed date
+        # Sort DataFrame by parsed date if available
         if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
-            # Make sure Date_parsed is actually datetime type before using dt accessor
             df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
             df = df.sort_values('Date_parsed')
-            # Create a formatted date display string that will be properly sorted
-            # Only use dt accessor on non-null values
-            mask = ~df['Date_parsed'].isna()
-            df.loc[mask, 'Date_display'] = df.loc[mask, 'Date_parsed'].dt.strftime('%Y-%m-%d')
-            # For null values, use original date column or index
-            if date_column:
-                df.loc[~mask, 'Date_display'] = df.loc[~mask, date_column]
-            else:
-                df.loc[~mask, 'Date_display'] = (df.loc[~mask].index + 1).astype(str)
-        else:
-            # Create a display column for the x-axis in charts if no date is available
-            df['Date_display'] = df[date_column] if date_column else (df.index + 1).astype(str)
-        
-        # Add derived columns for analysis
-        if 'TP' in df.columns and 'SL' in df.columns:
-            df['TP_plus_SL'] = df['TP'] + df['SL']
         
         return df
     else:
@@ -320,40 +330,28 @@ def filter_data_by_period(df, period):
         total_rows = len(df)
         
         if period == 'week':
-            # Last 7 days or last 7 rows, whichever is smaller
             rows_to_keep = min(7, total_rows)
             return df.iloc[-rows_to_keep:]
         elif period == 'month':
-            # Last 30 days or last 30 rows, whichever is smaller
             rows_to_keep = min(30, total_rows)
             return df.iloc[-rows_to_keep:]
         else:
-            # All data
             return df
     
     # We have parsed dates, so use them for filtering
     if period == 'week':
-        # Last 7 days
         start_date = today - datetime.timedelta(days=7)
         filtered_df = df[df['Date_parsed'] >= start_date]
-        
-        # If we got no results (maybe due to old dates), fall back to last 7 rows
         if filtered_df.empty:
             return df.tail(7)
         return filtered_df
-    
     elif period == 'month':
-        # Last 30 days
         start_date = today - datetime.timedelta(days=30)
         filtered_df = df[df['Date_parsed'] >= start_date]
-        
-        # If we got no results (maybe due to old dates), fall back to last 30 rows
         if filtered_df.empty:
             return df.tail(30)
         return filtered_df
-    
     else:
-        # All data
         return df
 
 def calculate_statistics(df):
@@ -361,13 +359,13 @@ def calculate_statistics(df):
     if df is None or df.empty:
         return None
     
-    # Determine column names based on what's available in the dataframe
-    tp_col = next((col for col in df.columns if col.upper() == 'TP' or 'TAKE' in col.upper()), None)
-    sl_col = next((col for col in df.columns if col.upper() == 'SL' or 'STOP' in col.upper()), None)
-    total_signal_col = next((col for col in df.columns if 'SIGNAL' in col.upper() or 'TOTAL' in col.upper()), None)
-    finished_col = next((col for col in df.columns if 'FINISH' in col.upper()), None)
+    # Use the standardized column names
+    tp_col = 'TP' if 'TP' in df.columns else None
+    sl_col = 'SL' if 'SL' in df.columns else None
+    total_signal_col = 'Total_Signal' if 'Total_Signal' in df.columns else None
+    finished_col = 'Finished' if 'Finished' in df.columns else None
     
-    if not all([tp_col, sl_col]):
+    if not tp_col or not sl_col:
         st.warning("Missing essential columns (TP or SL)")
         return None
     
@@ -386,77 +384,67 @@ def calculate_statistics(df):
     else:
         stats['overall_winrate'] = 0
     
-    # Calculate total signals and completion rate if available
+    # Calculate total signals and completion rate
     if total_signal_col:
         total_signals = pd.to_numeric(df[total_signal_col], errors='coerce').fillna(0).sum()
         stats['total_signals'] = int(total_signals)
         
-        # Calculate completion rate
         if total_signals > 0:
-            stats['completion_rate'] = 100 * (stats['total_tp'] + stats['total_sl']) / total_signals
+            finished_total = stats['total_tp'] + stats['total_sl']
+            stats['completion_rate'] = 100 * finished_total / total_signals
         else:
             stats['completion_rate'] = 0
     elif finished_col:
-        # Use finished column if available
         finished = pd.to_numeric(df[finished_col], errors='coerce').fillna(0).sum()
-        stats['total_signals'] = int(finished) + 0  # Assuming finished = TP + SL
-        stats['completion_rate'] = 100  # Assuming 100% completion if using finished
+        stats['total_signals'] = int(finished)
+        stats['completion_rate'] = 100
     else:
-        # Estimate total signals if neither is available
         stats['total_signals'] = int(stats['total_tp'] + stats['total_sl'])
-        stats['completion_rate'] = 100  # Assume 100% completion rate
+        stats['completion_rate'] = 100
     
     return stats
 
 # -------- VISUALIZATION FUNCTIONS --------
 def create_winrate_chart(df, lang):
     """Create a line chart for winrate trend"""
-    # Need date and winrate columns
     if df is None or df.empty or 'Winrate_num' not in df.columns:
         return None
     
     # Sort by date if available
     if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
-        # Make sure we're working with clean data
         df = df.copy()
         df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
         df = df.sort_values('Date_parsed')
     
-    # Use a custom domain for the x-axis to ensure proper ordering
+    # Use Date_display for x-axis with proper sorting
     domain = df['Date_display'].tolist()
     
     chart = alt.Chart(df).mark_line(point=True).encode(
         x=alt.X('Date_display:O', title=lang['date'], sort=domain),
         y=alt.Y('Winrate_num:Q', title=lang['winrate'] + ' (%)', scale=alt.Scale(domain=[0, 100])),
-        tooltip=['Date_display', 'Winrate_num', alt.Tooltip('TP', title='TP'), alt.Tooltip('SL', title='SL')]
+        tooltip=[
+            alt.Tooltip('Date_display:O', title=lang['date']),
+            alt.Tooltip('Winrate_num:Q', title=lang['winrate'] + ' (%)'),
+            alt.Tooltip('TP:Q', title='TP'),
+            alt.Tooltip('SL:Q', title='SL')
+        ]
     ).properties(height=300)
     
     return chart
 
 def create_tpsl_chart(df, lang):
     """Create a bar chart comparing TP vs SL by date"""
-    if df is None or df.empty:
-        return None
-    
-    # Determine TP and SL column names
-    tp_col = next((col for col in df.columns if col.upper() == 'TP' or 'TAKE' in col.upper()), None)
-    sl_col = next((col for col in df.columns if col.upper() == 'SL' or 'STOP' in col.upper()), None)
-    
-    if not tp_col or not sl_col:
+    if df is None or df.empty or 'TP' not in df.columns or 'SL' not in df.columns:
         return None
     
     # Sort by date if available
     if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
-        # Make sure we're working with clean data
         df = df.copy()
         df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
         df = df.sort_values('Date_parsed')
     
-    # Create a copy with required columns for melting
-    chart_df = df[['Date_display', tp_col, sl_col]].copy()
-    
-    # Rename columns to standard TP/SL for chart
-    chart_df.rename(columns={tp_col: 'TP', sl_col: 'SL'}, inplace=True)
+    # Create a copy for melting
+    chart_df = df[['Date_display', 'TP', 'SL']].copy()
     
     # Melt the dataframe for the stacked bar chart
     df_melted = pd.melt(
@@ -467,7 +455,7 @@ def create_tpsl_chart(df, lang):
         value_name='Count'
     )
     
-    # Use a custom domain for the x-axis to ensure proper ordering
+    # Use Date_display for x-axis with proper sorting
     domain = df['Date_display'].tolist()
     
     chart = alt.Chart(df_melted).mark_bar().encode(
@@ -477,7 +465,11 @@ def create_tpsl_chart(df, lang):
             domain=['TP', 'SL'],
             range=['#36b37e', '#ff5630']
         )),
-        tooltip=['Date_display', 'Type', 'Count']
+        tooltip=[
+            alt.Tooltip('Date_display:O', title=lang['date']),
+            alt.Tooltip('Type:N', title='Type'),
+            alt.Tooltip('Count:Q', title='Count')
+        ]
     ).properties(height=300)
     
     return chart
@@ -486,7 +478,7 @@ def create_tpsl_chart(df, lang):
 def main():
     # Initialize session state for language preference
     if 'language' not in st.session_state:
-        st.session_state.language = "id"  # Default to Indonesian
+        st.session_state.language = "id"
     
     # Get current language text dictionary
     lang = LANGUAGES[st.session_state.language]
@@ -510,24 +502,18 @@ def main():
         # Update language if changed
         if selected_lang != st.session_state.language:
             st.session_state.language = selected_lang
-            # Update the lang variable
             lang = LANGUAGES[st.session_state.language]
-            st.experimental_rerun()
+            st.rerun()
     
     st.title(lang["main_title"])
     
-    # Tambahkan gambar di bawah judul
-    # Coba cari gambar dari direktori lokal atau dari GitHub
+    # Add image below title
     try:
-        # Untuk Streamlit Cloud dan GitHub, gunakan format ini
         from PIL import Image
-        
-        # Cek apakah file gambar ada di direktori saat ini
         image_path = Path(IMAGE_PATH)
         if image_path.exists():
             st.image(IMAGE_PATH, use_column_width=True)
         else:
-            # Alternatif jika gambar tidak ditemukan
             st.warning(f"Gambar {IMAGE_PATH} tidak ditemukan. Pastikan file gambar tersedia di repositori GitHub Anda.")
     except Exception as e:
         st.warning(f"Tidak dapat menampilkan gambar: {str(e)}")
@@ -577,54 +563,45 @@ def main():
                             col4, col5, col6 = st.columns(3)
                             col4.metric(lang["overall_winrate"], f"{stats['overall_winrate']:.1f}%")
                             col5.metric(lang["completion_rate"], f"{stats['completion_rate']:.1f}%")
-                            # col6 dibiarkan kosong
                         
                         # Create and display charts
                         st.markdown(lang["winrate_chart_title"])
                         winrate_chart = create_winrate_chart(filtered_df, lang)
                         if winrate_chart:
                             st.altair_chart(winrate_chart, use_container_width=True)
+                        else:
+                            st.info("Chart winrate tidak dapat ditampilkan (data winrate tidak ditemukan)")
                         
                         st.markdown(lang["tpsl_chart_title"])
                         tpsl_chart = create_tpsl_chart(filtered_df, lang)
                         if tpsl_chart:
                             st.altair_chart(tpsl_chart, use_container_width=True)
+                        else:
+                            st.info("Chart TP/SL tidak dapat ditampilkan (data TP/SL tidak ditemukan)")
                         
                         # Display detailed data table
                         st.markdown(lang["data_table_title"])
                         
-                        # Determine columns to display
-                        date_col = next((col for col in filtered_df.columns if 'date' in col.lower() and not col.startswith('Date_')), None)
-                        numeric_cols = [col for col in filtered_df.columns if col in ['Total_Signal', 'TP', 'SL', 'Finished']]
-                        winrate_col = next((col for col in filtered_df.columns if 'winrate' in col.lower() and col != 'Winrate_num'), None)
-                        
+                        # Prepare display columns
                         display_cols = []
-                        if date_col:
-                            display_cols.append(date_col)
-                        display_cols.extend(numeric_cols)
-                        if winrate_col:
-                            display_cols.append(winrate_col)
+                        available_cols = ['Date', 'Total_Signal', 'Finished', 'TP', 'SL', 'Winrate_pct']
+                        for col in available_cols:
+                            if col in filtered_df.columns:
+                                display_cols.append(col)
                         
-                        # Sort dataframe by Date_parsed before displaying
-                        if 'Date_parsed' in filtered_df.columns:
-                            # Ensure Date_parsed is datetime type
-                            filtered_df['Date_parsed'] = pd.to_datetime(filtered_df['Date_parsed'], errors='coerce')
-                            # Only sort if we have valid dates
-                            if not filtered_df['Date_parsed'].isna().all():
-                                display_df = filtered_df.sort_values('Date_parsed')
-                            else:
-                                display_df = filtered_df
+                        # Display the data table
+                        if display_cols:
+                            st.dataframe(
+                                filtered_df[display_cols],
+                                use_container_width=True
+                            )
                         else:
-                            display_df = filtered_df
-                        
-                        # Display the data table with specified columns or all columns if none specified
-                        st.dataframe(
-                            display_df[display_cols] if display_cols else display_df,
-                            use_container_width=True
-                        )
+                            st.dataframe(filtered_df, use_container_width=True)
             
             except Exception as e:
                 st.error(f"{lang['error_message']}{str(e)}")
+                # Show debug information
+                st.error(f"Debug info: {type(e).__name__}")
     
     # Configuration information
     with st.expander(lang["config_header"]):
