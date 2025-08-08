@@ -141,9 +141,22 @@ def apply_custom_css():
     /* Radio buttons */
     .stRadio > div {
         background: #000000;
-        border-radius: 10px;
-        padding: 1rem;
-        border: 1px solid #FFD700;
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 2px solid #FFD700;
+        text-align: center;
+    }
+    
+    .stRadio label {
+        color: #FFFFFF !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+    }
+    
+    .stRadio div[role="radiogroup"] {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
     }
     
     /* Data table */
@@ -156,6 +169,21 @@ def apply_custom_css():
     /* Sidebar */
     .css-1d391kg {
         background: #000000;
+    }
+    
+    /* Override any gray text */
+    .stMarkdown p, .stMarkdown span, .stMarkdown div {
+        color: #FFFFFF !important;
+    }
+    
+    /* Ensure all headings are either yellow or white */
+    h1, h2, h3, h4, h5, h6 {
+        color: #FFD700 !important;
+    }
+    
+    /* Radio button text fix */
+    .stRadio > div > label > div {
+        color: #FFFFFF !important;
     }
     
     /* Success/Warning messages */
@@ -560,7 +588,7 @@ def create_combined_dashboard_chart(df):
         fig.update_yaxes(range=[0, 100], row=1, col=1)
     
     if 'TP' in df.columns and 'SL' in df.columns:
-        # TP vs SL with yellow tones
+        # TP vs SL with yellow and white
         fig.add_trace(
             go.Bar(x=df['Date_display'], y=df['TP'], name='TP', 
                    marker_color='#FFD700', opacity=0.9),
@@ -568,11 +596,11 @@ def create_combined_dashboard_chart(df):
         )
         fig.add_trace(
             go.Bar(x=df['Date_display'], y=df['SL'], name='SL',
-                   marker_color='#B8860B', opacity=0.9),
+                   marker_color='#FFFFFF', opacity=0.9),
             row=1, col=2
         )
         
-        # Cumulative performance with yellow tones
+        # Cumulative performance with yellow and white
         cumulative_tp = df['TP'].cumsum()
         cumulative_sl = df['SL'].cumsum()
         fig.add_trace(
@@ -584,7 +612,7 @@ def create_combined_dashboard_chart(df):
         fig.add_trace(
             go.Scatter(x=df['Date_display'], y=cumulative_sl,
                       mode='lines', name='Cumulative SL',
-                      line=dict(color='#B8860B', width=3)),
+                      line=dict(color='#FFFFFF', width=3)),
             row=2, col=1
         )
     
@@ -606,7 +634,7 @@ def create_combined_dashboard_chart(df):
         title_font=dict(size=20, color='#FFD700'),
         showlegend=True,
         legend=dict(
-            font=dict(color='#FFD700'),
+            font=dict(color='#FFFFFF'),
             bgcolor='#000000'
         )
     )
@@ -651,23 +679,28 @@ def main():
     """, unsafe_allow_html=True)
     
     # Period selector
-    st.markdown("### 📊 Trading Performance Analysis")
+    st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin-bottom: 1rem; text-align: center;">📊 Trading Performance Analysis</h3>', unsafe_allow_html=True)
     st.markdown("<br>", unsafe_allow_html=True)
     
-    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+    # Create centered layout for period selector and button
+    col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
-        st.markdown('<p style="color: #FFFFFF; font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Select Time Period:</p>', unsafe_allow_html=True)
+        # Period selector with better styling
+        st.markdown('<div style="text-align: center; margin-bottom: 1.5rem;">', unsafe_allow_html=True)
+        st.markdown('<p style="color: #FFFFFF; font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem;">Select Time Period:</p>', unsafe_allow_html=True)
+        
         period = st.radio(
             "",
             options=["week", "month", "all"],
             format_func=lambda x: {"week": "📅 Last Week", "month": "📆 Last Month", "all": "📈 All Time"}[x],
-            horizontal=False
+            horizontal=True,
+            key="period_selector"
         )
-    
-    with col3:
-        st.markdown('<div style="margin-top: 1.8rem;"></div>', unsafe_allow_html=True)
-        load_button = st.button("🚀 Load Trading Statistics", use_container_width=True)
+        
+        st.markdown('<div style="margin-top: 1.5rem;"></div>', unsafe_allow_html=True)
+        load_button = st.button("🚀 LOAD TRADING STATISTICS", use_container_width=True, type="primary")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     if load_button:
         with st.spinner("🔄 Loading trading data..."):
