@@ -418,34 +418,48 @@ def create_winrate_chart(df):
     
     fig = go.Figure()
     
-    # Add winrate line
+    # Add winrate line with better visibility
     fig.add_trace(go.Scatter(
         x=df['Date_display'],
         y=df['Winrate_num'],
         mode='lines+markers',
         name='Winrate',
-        line=dict(color='#FFD700', width=3),
-        marker=dict(size=8, color='#FFD700', line=dict(width=2, color='#FFF')),
+        line=dict(color='#00FF88', width=4),  # Bright green for better visibility
+        marker=dict(size=10, color='#00FF88', line=dict(width=3, color='#FFFFFF')),
         hovertemplate='<b>Date:</b> %{x}<br><b>Winrate:</b> %{y}%<extra></extra>'
     ))
     
-    # Add average line
+    # Add average line with better contrast
     avg_winrate = df['Winrate_num'].mean()
-    fig.add_hline(y=avg_winrate, line_dash="dash", line_color="#FF6B6B", 
-                  annotation_text=f"Average: {avg_winrate:.1f}%")
+    fig.add_hline(y=avg_winrate, line_dash="dash", line_color="#FF4444", line_width=2,
+                  annotation_text=f"Average: {avg_winrate:.1f}%", 
+                  annotation_font_color="#FF4444", annotation_font_size=14)
+    
+    # Add 70% benchmark line
+    fig.add_hline(y=70, line_dash="dot", line_color="#FFD700", line_width=2,
+                  annotation_text="Target: 70%", 
+                  annotation_font_color="#FFD700", annotation_font_size=12)
     
     fig.update_layout(
-        title="Historical Winrate Trend",
-        title_font=dict(size=20, color='#FFD700'),
-        xaxis_title="Date",
-        yaxis_title="Winrate (%)",
+        title=dict(text="Winrate Trend", font=dict(size=18, color='#FFFFFF')),
+        xaxis_title=dict(text="Date", font=dict(color='#FFFFFF')),
+        yaxis_title=dict(text="Winrate (%)", font=dict(color='#FFFFFF')),
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white'),
-        height=400,
+        font=dict(color='#FFFFFF', size=12),
+        height=350,
         showlegend=False,
-        yaxis=dict(range=[0, 100], gridcolor='rgba(255,255,255,0.2)'),
-        xaxis=dict(gridcolor='rgba(255,255,255,0.2)')
+        yaxis=dict(
+            range=[0, 100], 
+            gridcolor='rgba(255,255,255,0.3)',
+            tickfont=dict(color='#FFFFFF', size=11),
+            dtick=10  # Show ticks every 10%
+        ),
+        xaxis=dict(
+            gridcolor='rgba(255,255,255,0.3)',
+            tickfont=dict(color='#FFFFFF', size=11)
+        ),
+        margin=dict(l=60, r=60, t=60, b=60)
     )
     
     return fig
@@ -462,37 +476,49 @@ def create_tpsl_chart(df):
     
     fig = go.Figure()
     
-    # Add TP bars
+    # Add TP bars with bright green
     fig.add_trace(go.Bar(
         x=df['Date_display'],
         y=df['TP'],
         name='Take Profit',
-        marker_color='#4CAF50',
-        hovertemplate='<b>Date:</b> %{x}<br><b>TP:</b> %{y}<extra></extra>'
+        marker_color='#00FF88',  # Bright green
+        hovertemplate='<b>Date:</b> %{x}<br><b>TP:</b> %{y}<extra></extra>',
+        opacity=0.8
     ))
     
-    # Add SL bars
+    # Add SL bars with bright red
     fig.add_trace(go.Bar(
         x=df['Date_display'],
         y=df['SL'],
         name='Stop Loss',
-        marker_color='#F44336',
-        hovertemplate='<b>Date:</b> %{x}<br><b>SL:</b> %{y}<extra></extra>'
+        marker_color='#FF4444',  # Bright red
+        hovertemplate='<b>Date:</b> %{x}<br><b>SL:</b> %{y}<extra></extra>',
+        opacity=0.8
     ))
     
     fig.update_layout(
-        title="Take Profit vs Stop Loss Distribution",
-        title_font=dict(size=20, color='#FFD700'),
-        xaxis_title="Date",
-        yaxis_title="Count",
+        title=dict(text="TP vs SL", font=dict(size=18, color='#FFFFFF')),
+        xaxis_title=dict(text="Date", font=dict(color='#FFFFFF')),
+        yaxis_title=dict(text="Count", font=dict(color='#FFFFFF')),
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white'),
-        height=400,
+        font=dict(color='#FFFFFF', size=12),
+        height=350,
         barmode='group',
-        legend=dict(x=0, y=1),
-        yaxis=dict(gridcolor='rgba(255,255,255,0.2)'),
-        xaxis=dict(gridcolor='rgba(255,255,255,0.2)')
+        legend=dict(
+            x=0, y=1,
+            font=dict(color='#FFFFFF', size=12),
+            bgcolor='rgba(0,0,0,0.5)'
+        ),
+        yaxis=dict(
+            gridcolor='rgba(255,255,255,0.3)',
+            tickfont=dict(color='#FFFFFF', size=11)
+        ),
+        xaxis=dict(
+            gridcolor='rgba(255,255,255,0.3)',
+            tickfont=dict(color='#FFFFFF', size=11)
+        ),
+        margin=dict(l=60, r=60, t=60, b=60)
     )
     
     return fig
@@ -502,68 +528,93 @@ def create_combined_dashboard_chart(df):
     if df is None or df.empty:
         return None
     
-    # Create subplots
+    # Create subplots with better styling
     fig = make_subplots(
         rows=2, cols=2,
         subplot_titles=('Winrate Trend', 'TP vs SL', 'Cumulative Performance', 'Daily Signals'),
         specs=[[{"secondary_y": False}, {"secondary_y": False}],
-               [{"secondary_y": False}, {"secondary_y": False}]]
+               [{"secondary_y": False}, {"secondary_y": False}]],
+        vertical_spacing=0.12,
+        horizontal_spacing=0.1
     )
     
     if 'Winrate_num' in df.columns:
-        # Winrate trend
+        # Winrate trend with improved colors
         fig.add_trace(
             go.Scatter(x=df['Date_display'], y=df['Winrate_num'], 
                       mode='lines+markers', name='Winrate',
-                      line=dict(color='#FFD700')),
+                      line=dict(color='#00FF88', width=3),
+                      marker=dict(size=6, color='#00FF88')),
             row=1, col=1
         )
+        
+        # Set y-axis range for winrate to 0-100
+        fig.update_yaxes(range=[0, 100], row=1, col=1)
     
     if 'TP' in df.columns and 'SL' in df.columns:
-        # TP vs SL
+        # TP vs SL with bright colors
         fig.add_trace(
             go.Bar(x=df['Date_display'], y=df['TP'], name='TP', 
-                   marker_color='#4CAF50'),
+                   marker_color='#00FF88', opacity=0.8),
             row=1, col=2
         )
         fig.add_trace(
             go.Bar(x=df['Date_display'], y=df['SL'], name='SL',
-                   marker_color='#F44336'),
+                   marker_color='#FF4444', opacity=0.8),
             row=1, col=2
         )
         
-        # Cumulative performance
+        # Cumulative performance with better visibility
         cumulative_tp = df['TP'].cumsum()
         cumulative_sl = df['SL'].cumsum()
         fig.add_trace(
             go.Scatter(x=df['Date_display'], y=cumulative_tp, 
                       mode='lines', name='Cumulative TP',
-                      line=dict(color='#4CAF50')),
+                      line=dict(color='#00FF88', width=3)),
             row=2, col=1
         )
         fig.add_trace(
             go.Scatter(x=df['Date_display'], y=cumulative_sl,
                       mode='lines', name='Cumulative SL',
-                      line=dict(color='#F44336')),
+                      line=dict(color='#FF4444', width=3)),
             row=2, col=1
         )
     
     if 'Total_Signal' in df.columns:
-        # Daily signals
+        # Daily signals with blue color
         fig.add_trace(
             go.Bar(x=df['Date_display'], y=df['Total_Signal'], 
-                   name='Daily Signals', marker_color='#2196F3'),
+                   name='Daily Signals', marker_color='#3399FF', opacity=0.8),
             row=2, col=2
         )
     
+    # Update layout with better styling
     fig.update_layout(
-        height=800,
+        height=700,
         plot_bgcolor='rgba(0,0,0,0)',
         paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='white'),
+        font=dict(color='#FFFFFF', size=12),
         title_text="LuxQuant VIP Trading Dashboard",
-        title_font=dict(size=24, color='#FFD700'),
-        showlegend=True
+        title_font=dict(size=20, color='#FFD700'),
+        showlegend=True,
+        legend=dict(
+            font=dict(color='#FFFFFF'),
+            bgcolor='rgba(0,0,0,0.5)'
+        )
+    )
+    
+    # Update all subplot titles to white
+    for i in fig['layout']['annotations']:
+        i['font'] = dict(color='#FFFFFF', size=14)
+    
+    # Update axes styling
+    fig.update_xaxes(
+        gridcolor='rgba(255,255,255,0.3)',
+        tickfont=dict(color='#FFFFFF', size=10)
+    )
+    fig.update_yaxes(
+        gridcolor='rgba(255,255,255,0.3)',
+        tickfont=dict(color='#FFFFFF', size=10)
     )
     
     return fig
@@ -830,40 +881,7 @@ def main():
         if st.button("📞 CONTACT SUPPORT", use_container_width=True):
             st.info("💬 Connecting to support team...")
     
-    # Configuration section
-    with st.expander("🔧 Google Sheets Configuration"):
-        st.markdown("""
-        ### Google Service Account Configuration
-        
-        For correct configuration, add the following secret to Streamlit Cloud:
-        
-        `gcp_service_account` - for Google Sheets access
-        
-        **Required TOML format:**
-        ```toml
-        [gcp_service_account]
-        type = "service_account"
-        project_id = "your-project-id"
-        private_key_id = "your-key-id"
-        private_key = "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"
-        client_email = "your-service-account@your-project.iam.gserviceaccount.com"
-        client_id = "your-client-id"
-        auth_uri = "https://accounts.google.com/o/oauth2/auth"
-        token_uri = "https://oauth2.googleapis.com/token"
-        auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
-        client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account"
-        universe_domain = "googleapis.com"
-        ```
-        
-        ### Spreadsheet Structure
-        Expected columns in your Google Sheet:
-        - **Date**: Trading date (YYYY-MM-DD format)
-        - **Total_Signal**: Total signals generated
-        - **Finished**: Completed trades
-        - **TP**: Take Profit count
-        - **SL**: Stop Loss count
-        - **Winrate**: Win rate percentage
-        """)
+
     
     # Footer
     st.markdown("---")
