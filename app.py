@@ -14,6 +14,7 @@ from typing import Optional, Dict, Any
 
 # ==================== CONFIGURATION ====================
 class Config:
+    """Central configuration class"""
     SPREADSHEET_ID = "1g3XL1EllHoWV3jhmi7gT3at6MtCNTJBo8DQ1WyWhMEo"
     SHEET_NAME = "Sheet1"
     
@@ -35,8 +36,11 @@ class Config:
 
 # ==================== STYLING ====================
 class StyleManager:
+    """Manages all CSS styling for the application"""
+    
     @staticmethod
     def apply_custom_css():
+        """Apply comprehensive responsive CSS styling"""
         st.markdown("""
         <style>
         /* Import Binance-like fonts */
@@ -49,10 +53,17 @@ class StyleManager:
             font-family: 'IBM Plex Sans', sans-serif;
         }
         
-        /* Header styling with Binance theme */
+        /* Responsive container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        /* Header styling with Binance theme - Responsive */
         .main-header {
             text-align: center;
-            padding: 2.5rem 0;
+            padding: 2rem 1rem;
             background: linear-gradient(135deg, #181A20 0%, #1E2329 100%);
             border-radius: 16px;
             margin-bottom: 2rem;
@@ -61,7 +72,7 @@ class StyleManager:
         }
         
         .main-title {
-            font-size: 3.2rem;
+            font-size: clamp(1.8rem, 4vw, 3.2rem);
             font-weight: 700;
             background: linear-gradient(135deg, #F0B90B 0%, #FCD535 100%);
             -webkit-background-clip: text;
@@ -69,27 +80,41 @@ class StyleManager:
             margin-bottom: 0.8rem;
             text-shadow: 0 0 30px rgba(240, 185, 11, 0.4);
             font-family: 'IBM Plex Sans', sans-serif;
+            line-height: 1.2;
         }
         
         .subtitle {
-            font-size: 1.1rem;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
             color: #B7BDC6;
             margin-bottom: 1rem;
             font-weight: 400;
             line-height: 1.5;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .accuracy-badge {
             background: linear-gradient(135deg, #F0B90B 0%, #FCD535 100%);
             color: #0B0E11;
-            padding: 0.8rem 1.8rem;
+            padding: 0.6rem 1.2rem;
             border-radius: 8px;
             font-weight: 600;
             display: inline-block;
-            margin: 0.4rem;
-            font-size: 0.95rem;
+            margin: 0.3rem;
+            font-size: clamp(0.8rem, 2vw, 0.95rem);
             box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
             transition: all 0.3s ease;
+        }
+        
+        /* Mobile specific badge adjustments */
+        @media (max-width: 768px) {
+            .accuracy-badge {
+                display: block;
+                margin: 0.5rem auto;
+                max-width: 280px;
+                text-align: center;
+            }
         }
         
         .accuracy-badge:hover {
@@ -97,18 +122,19 @@ class StyleManager:
             box-shadow: 0 6px 20px rgba(240, 185, 11, 0.4);
         }
         
-        /* Binance-style stats cards */
+        /* Binance-style stats cards - Responsive */
         .stat-card {
             background: linear-gradient(135deg, #181A20 0%, #1E2329 100%);
             border: 1px solid #2B3139;
             border-radius: 12px;
-            padding: 1.8rem;
+            padding: clamp(1rem, 3vw, 1.8rem);
             text-align: center;
-            min-width: 200px;
-            flex: 1;
-            max-width: 300px;
+            min-height: 120px;
             transition: all 0.3s ease;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         
         .stat-card:hover {
@@ -118,54 +144,57 @@ class StyleManager:
         }
         
         .stat-icon {
-            font-size: 2.2rem;
-            margin-bottom: 0.8rem;
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            margin-bottom: 0.5rem;
             filter: brightness(1.2);
         }
         
         .stat-value {
-            font-size: 2.8rem;
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
             font-weight: 700;
             color: #F0B90B;
-            margin: 0.8rem 0;
+            margin: 0.5rem 0;
             text-shadow: 0 0 15px rgba(240, 185, 11, 0.3);
             font-family: 'IBM Plex Sans', sans-serif;
+            line-height: 1.1;
         }
         
         .stat-label {
-            font-size: 0.9rem;
+            font-size: clamp(0.75rem, 2vw, 0.9rem);
             color: #B7BDC6;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.5px;
             font-weight: 500;
-            line-height: 1.4;
+            line-height: 1.3;
         }
         
-        /* Chart containers with Binance styling */
+        /* Chart containers - Responsive */
         .chart-container {
             background: linear-gradient(135deg, #181A20 0%, #1E2329 100%);
             border: 1px solid #2B3139;
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: clamp(0.8rem, 2vw, 1.5rem);
             margin: 1rem 0;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            overflow-x: auto;
         }
         
-        /* Binance-style buttons */
+        /* Binance-style buttons - Responsive */
         .stButton button {
             background: linear-gradient(135deg, #F0B90B 0%, #FCD535 100%);
             color: #0B0E11;
             border: none;
             border-radius: 8px;
-            padding: 0.9rem 2.2rem;
+            padding: clamp(0.7rem, 2vw, 0.9rem) clamp(1.5rem, 4vw, 2.2rem);
             font-weight: 600;
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 2vw, 1rem);
             transition: all 0.3s ease;
             width: 100%;
             box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-family: 'IBM Plex Sans', sans-serif;
+            min-height: 48px;
         }
         
         .stButton button:hover {
@@ -174,39 +203,48 @@ class StyleManager:
             background: linear-gradient(135deg, #FCD535 0%, #F0B90B 100%);
         }
         
-        /* Radio buttons with better visibility */
+        /* Radio buttons with better visibility - Responsive */
         .stRadio > div {
             background: linear-gradient(135deg, #181A20 0%, #1E2329 100%);
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: clamp(1rem, 3vw, 1.5rem);
             border: 1px solid #2B3139;
             text-align: center;
         }
         
         .stRadio label {
             color: #FFFFFF !important;
-            font-size: 1.1rem !important;
+            font-size: clamp(0.9rem, 2vw, 1.1rem) !important;
             font-weight: 600 !important;
         }
         
-        .stRadio div[role="radiogroup"] > label > div {
-            color: #FFFFFF !important;
-            font-weight: 600 !important;
+        .stRadio div[role="radiogroup"] {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            align-items: center;
         }
         
-        .stRadio div[role="radiogroup"] > label:hover {
-            color: #F0B90B !important;
+        @media (min-width: 768px) {
+            .stRadio div[role="radiogroup"] {
+                flex-direction: row;
+                justify-content: center;
+                gap: 2rem;
+            }
         }
         
-        .stRadio div[role="radiogroup"] > label > div:first-child {
-            border-color: #F0B90B !important;
-        }
-        
-        /* Data table styling */
+        /* Data table styling - Responsive */
         .stDataFrame {
             background: #181A20;
             border-radius: 8px;
             border: 1px solid #2B3139;
+            overflow-x: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .stDataFrame {
+                font-size: 0.85rem;
+            }
         }
         
         /* Text color overrides */
@@ -217,63 +255,79 @@ class StyleManager:
         h1, h2, h3, h4, h5, h6 {
             color: #F0B90B !important;
             font-family: 'IBM Plex Sans', sans-serif !important;
+            font-size: clamp(1.2rem, 3vw, 1.8rem) !important;
+            text-align: center;
+            margin-bottom: 1rem !important;
         }
         
-        /* Success/Warning/Error messages */
+        /* Success/Warning/Error messages - Responsive */
         .stSuccess {
             background: linear-gradient(135deg, #0ECB81 0%, #03A66D 100%);
             border-radius: 8px;
             border: none;
+            margin: 1rem 0;
         }
         
         .stWarning {
             background: linear-gradient(135deg, #F0B90B 0%, #D9A441 100%);
             border-radius: 8px;
             border: none;
+            margin: 1rem 0;
         }
         
         .stError {
             background: linear-gradient(135deg, #F6465D 0%, #D73C52 100%);
             border-radius: 8px;
             border: none;
+            margin: 1rem 0;
         }
         
-        /* Sidebar styling */
-        .css-1d391kg {
-            background: #0B0E11;
+        /* Period selector responsive */
+        .period-selector-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 1rem;
         }
         
-        /* Remove default Streamlit styling */
-        .stApp > header {
-            background: transparent;
+        /* Footer responsive */
+        .footer-container {
+            padding: clamp(1rem, 3vw, 2rem);
+            margin-top: 2rem;
+            text-align: center;
         }
         
-        .stApp > .main > .block-container {
-            padding-top: 2rem;
+        /* Mobile specific optimizations */
+        @media (max-width: 480px) {
+            .main-header {
+                padding: 1.5rem 0.8rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .chart-container {
+                padding: 0.8rem;
+                margin: 0.8rem 0;
+            }
+            
+            .stat-card {
+                min-height: 100px;
+                padding: 1rem;
+            }
         }
         
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #181A20;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #2B3139;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #F0B90B;
+        /* Large screen optimizations */
+        @media (min-width: 1200px) {
+            .stApp > .main > .block-container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
         }
         </style>
         """, unsafe_allow_html=True)
 
 # ==================== DATA MANAGER ====================
 class DataManager:
+    """Handles all data operations including Google Sheets connection"""
+    
     def __init__(self):
         self._sheet = None
     
@@ -474,6 +528,8 @@ class DataManager:
 
 # ==================== ANALYTICS ENGINE ====================
 class AnalyticsEngine:
+    """Handles all analytics and data processing operations"""
+    
     @staticmethod
     def filter_data_by_period(df: Optional[pd.DataFrame], period: str) -> Optional[pd.DataFrame]:
         """Filter DataFrame by selected time period"""
@@ -547,6 +603,8 @@ class AnalyticsEngine:
 
 # ==================== CHART BUILDER ====================
 class ChartBuilder:
+    """Handles all chart creation and visualization"""
+    
     @staticmethod
     def create_winrate_chart(df: Optional[pd.DataFrame]) -> Optional[go.Figure]:
         """Create an enhanced winrate chart"""
@@ -679,12 +737,12 @@ class ChartBuilder:
         if 'TP' in df.columns and 'SL' in df.columns:
             fig.add_trace(
                 go.Bar(x=df['Date_display'], y=df['TP'], name='TP', 
-                       marker_color=Config.COLORS['primary'], opacity=0.9),
+                       marker_color=Config.COLORS['success'], opacity=0.9),
                 row=1, col=2
             )
             fig.add_trace(
                 go.Bar(x=df['Date_display'], y=df['SL'], name='SL',
-                       marker_color=Config.COLORS['secondary'], opacity=0.9),
+                       marker_color=Config.COLORS['danger'], opacity=0.9),
                 row=1, col=2
             )
             
@@ -694,13 +752,13 @@ class ChartBuilder:
             fig.add_trace(
                 go.Scatter(x=df['Date_display'], y=cumulative_tp, 
                           mode='lines', name='Cumulative TP',
-                          line=dict(color=Config.COLORS['primary'], width=3)),
+                          line=dict(color=Config.COLORS['success'], width=3)),
                 row=2, col=1
             )
             fig.add_trace(
                 go.Scatter(x=df['Date_display'], y=cumulative_sl,
                           mode='lines', name='Cumulative SL',
-                          line=dict(color=Config.COLORS['secondary'], width=3)),
+                          line=dict(color=Config.COLORS['danger'], width=3)),
                 row=2, col=1
             )
         
@@ -721,7 +779,7 @@ class ChartBuilder:
             title_text="LuxQuant VIP Trading Dashboard",
             title_font=dict(size=20, color=Config.COLORS['primary']),
             showlegend=True,
-            legend=dict(font=dict(color=Config.COLORS['secondary']),
+            legend=dict(font=dict(color=Config.COLORS['text_secondary']),
                        bgcolor=Config.COLORS['background'])
         )
         
@@ -731,17 +789,19 @@ class ChartBuilder:
         
         # Update axes
         fig.update_xaxes(gridcolor=Config.COLORS['grid'],
-                        tickfont=dict(color=Config.COLORS['primary'], size=10))
+                        tickfont=dict(color=Config.COLORS['text_secondary'], size=10))
         fig.update_yaxes(gridcolor=Config.COLORS['grid'],
-                        tickfont=dict(color=Config.COLORS['primary'], size=10))
+                        tickfont=dict(color=Config.COLORS['text_secondary'], size=10))
         
         return fig
 
 # ==================== UI COMPONENTS ====================
 class UIComponents:
+    """Manages all UI components and rendering"""
+    
     @staticmethod
     def render_header():
-        """Render main header"""
+        """Render main header with branding"""
         st.markdown("""
         <div class="main-header">
             <div class="main-title">LuxQuant VIP | 智汇尊享会</div>
@@ -754,15 +814,16 @@ class UIComponents:
     
     @staticmethod
     def render_period_selector():
-        """Render period selector"""
-        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin-bottom: 1rem; text-align: center;">📊 Trading Performance Analysis</h3>', unsafe_allow_html=True)
+        """Render responsive period selector"""
+        st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin-bottom: 1rem; text-align: center;">📊 Trading Performance Analysis</h3>', unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         
+        # Use responsive container
         col1, col2, col3 = st.columns([1, 2, 1])
         
         with col2:
-            st.markdown('<div style="text-align: center; margin-bottom: 1.5rem;">', unsafe_allow_html=True)
-            st.markdown('<p style="color: #FFFFFF; font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem;">Select Time Period:</p>', unsafe_allow_html=True)
+            st.markdown('<div class="period-selector-container">', unsafe_allow_html=True)
+            st.markdown('<p style="color: #FFFFFF; font-size: clamp(1rem, 2.5vw, 1.2rem); font-weight: 600; margin-bottom: 1rem; text-align: center;">Select Time Period:</p>', unsafe_allow_html=True)
             
             period = st.radio(
                 "",
@@ -780,10 +841,11 @@ class UIComponents:
     
     @staticmethod
     def render_stats_cards(stats: Dict[str, Any]):
-        """Render statistics cards"""
-        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin-bottom: 1.5rem;">📈 Key Performance Metrics</h3>', unsafe_allow_html=True)
+        """Render statistics cards with responsive grid"""
+        st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin-bottom: 1.5rem; text-align: center;">📈 Key Performance Metrics</h3>', unsafe_allow_html=True)
         
-        col1, col2, col3, col4 = st.columns(4)
+        # Use responsive columns
+        col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
         
         with col1:
             st.markdown(f"""
@@ -823,8 +885,8 @@ class UIComponents:
     
     @staticmethod
     def render_insights(stats: Dict[str, Any], filtered_df: pd.DataFrame):
-        """Render trading insights"""
-        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">💡 Trading Insights</h3>', unsafe_allow_html=True)
+        """Render trading insights with responsive layout"""
+        st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin: 2rem 0 1.5rem 0; text-align: center;">💡 Trading Insights</h3>', unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns(3)
         
@@ -839,7 +901,7 @@ class UIComponents:
                 insight_icon = "🟡"
                 insight_text = "Good Performance"
             else:
-                insight_color = Config.COLORS['error']
+                insight_color = Config.COLORS['danger']
                 insight_icon = "🔴"
                 insight_text = "Needs Improvement"
             
@@ -847,7 +909,7 @@ class UIComponents:
             <div class="stat-card">
                 <div class="stat-icon">{insight_icon}</div>
                 <div class="stat-label" style="color: {insight_color};">{insight_text}</div>
-                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                <div style="font-size: clamp(0.75rem, 2vw, 0.9rem); margin-top: 0.5rem;">
                     Winrate: {stats['overall_winrate']:.1f}%
                 </div>
             </div>
@@ -866,7 +928,7 @@ class UIComponents:
                 else:
                     trend_icon = "📉"
                     trend_text = "Declining Trend"
-                    trend_color = Config.COLORS['error']
+                    trend_color = Config.COLORS['danger']
             else:
                 trend_icon = "📊"
                 trend_text = "Stable Performance"
@@ -876,7 +938,7 @@ class UIComponents:
             <div class="stat-card">
                 <div class="stat-icon">{trend_icon}</div>
                 <div class="stat-label" style="color: {trend_color};">{trend_text}</div>
-                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                <div style="font-size: clamp(0.75rem, 2vw, 0.9rem); margin-top: 0.5rem;">
                     Recent Performance Analysis
                 </div>
             </div>
@@ -897,7 +959,7 @@ class UIComponents:
                 else:
                     risk_icon = "🔴"
                     risk_text = "High Risk"
-                    risk_color = Config.COLORS['error']
+                    risk_color = Config.COLORS['danger']
             else:
                 risk_icon = "🟢"
                 risk_text = "Low Risk"
@@ -907,7 +969,7 @@ class UIComponents:
             <div class="stat-card">
                 <div class="stat-icon">{risk_icon}</div>
                 <div class="stat-label" style="color: {risk_color};">{risk_text}</div>
-                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                <div style="font-size: clamp(0.75rem, 2vw, 0.9rem); margin-top: 0.5rem;">
                     TP/SL Ratio: {stats['total_tp']}/{stats['total_sl']}
                 </div>
             </div>
@@ -915,8 +977,8 @@ class UIComponents:
     
     @staticmethod
     def render_action_buttons():
-        """Render action buttons"""
-        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">🚀 Take Action</h3>', unsafe_allow_html=True)
+        """Render responsive action buttons"""
+        st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin: 2rem 0 1.5rem 0; text-align: center;">🚀 Take Action</h3>', unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns(3)
         
@@ -934,18 +996,20 @@ class UIComponents:
     
     @staticmethod
     def render_footer():
-        """Render footer"""
+        """Render responsive footer"""
         st.markdown("---")
         st.markdown("""
-        <div style='text-align: center; padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%); backdrop-filter: blur(10px); border-radius: 15px; margin-top: 2rem;'>
-            <h3 style='color: #FFD700; margin-bottom: 1rem;'>Ready to Start Automated Trading?</h3>
-            <p style='color: #B0B0B0; margin-bottom: 1.5rem;'>Join thousands of traders using LuxQuant VIP for automated crypto trading signals.</p>
-            <p style='color: #888; font-size: 0.9rem;'>Made with ❤️ by LuxQuant VIP | 智汇尊享会 | Historical accuracy does not guarantee future results</p>
+        <div class='footer-container' style='text-align: center; padding: clamp(1rem, 3vw, 2rem); background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%); backdrop-filter: blur(10px); border-radius: 15px; margin-top: 2rem;'>
+            <h3 style='color: #F0B90B; margin-bottom: 1rem; font-size: clamp(1.2rem, 3vw, 1.5rem);'>Ready to Start Automated Trading?</h3>
+            <p style='color: #B0B0B0; margin-bottom: 1.5rem; font-size: clamp(0.9rem, 2vw, 1rem);'>Join thousands of traders using LuxQuant VIP for automated crypto trading signals.</p>
+            <p style='color: #888; font-size: clamp(0.8rem, 1.5vw, 0.9rem);'>Made with ❤️ by LuxQuant VIP | 智汇尊享会 | Historical accuracy does not guarantee future results</p>
         </div>
         """, unsafe_allow_html=True)
 
 # ==================== MAIN APPLICATION ====================
 class LuxQuantDashboard:
+    """Main application class that orchestrates all components"""
+    
     def __init__(self):
         self.data_manager = DataManager()
         self.analytics = AnalyticsEngine()
@@ -953,13 +1017,17 @@ class LuxQuantDashboard:
         self.ui = UIComponents()
     
     def configure_page(self):
-        """Configure Streamlit page"""
+        """Configure Streamlit page with responsive settings"""
         st.set_page_config(
             page_title="LuxQuant VIP | Trading Dashboard",
             page_icon="📊",
             layout="wide",
-            initial_sidebar_state="expanded",
+            initial_sidebar_state="collapsed",
         )
+        
+        # Initialize session state
+        if 'mobile_view' not in st.session_state:
+            st.session_state.mobile_view = False
     
     def run(self):
         """Main application runner"""
@@ -980,7 +1048,7 @@ class LuxQuantDashboard:
         self.ui.render_footer()
     
     def _handle_data_loading(self, period: str):
-        """Handle data loading and display"""
+        """Handle data loading and display logic"""
         with st.spinner("🔄 Loading trading data..."):
             try:
                 # Get and filter data
@@ -1019,36 +1087,51 @@ class LuxQuantDashboard:
                 st.error(f"Debug info: {type(e).__name__}")
     
     def _render_charts(self, filtered_df: pd.DataFrame):
-        """Render all charts"""
-        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">📊 Performance Analytics</h3>', unsafe_allow_html=True)
+        """Render all charts with responsive layout"""
+        st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin: 2rem 0 1.5rem 0; text-align: center;">📊 Performance Analytics</h3>', unsafe_allow_html=True)
         
-        # Combined dashboard
+        # Combined dashboard - responsive height
         combined_chart = self.chart_builder.create_combined_dashboard_chart(filtered_df)
         if combined_chart:
+            # Update chart for mobile responsiveness
+            combined_chart.update_layout(
+                height=600 if st.session_state.get('mobile_view', False) else 700,
+                margin=dict(l=40, r=40, t=60, b=40)
+            )
             st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-            st.plotly_chart(combined_chart, use_container_width=True)
+            st.plotly_chart(combined_chart, use_container_width=True, config={'responsive': True})
             st.markdown('</div>', unsafe_allow_html=True)
         
-        # Individual charts
-        col1, col2 = st.columns(2)
+        # Individual charts with responsive grid
+        col1, col2 = st.columns([1, 1])
         
         with col1:
             winrate_chart = self.chart_builder.create_winrate_chart(filtered_df)
             if winrate_chart:
+                # Update chart for responsiveness
+                winrate_chart.update_layout(
+                    height=300 if st.session_state.get('mobile_view', False) else 350,
+                    margin=dict(l=40, r=40, t=50, b=40)
+                )
                 st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-                st.plotly_chart(winrate_chart, use_container_width=True)
+                st.plotly_chart(winrate_chart, use_container_width=True, config={'responsive': True})
                 st.markdown('</div>', unsafe_allow_html=True)
         
         with col2:
             tpsl_chart = self.chart_builder.create_tpsl_chart(filtered_df)
             if tpsl_chart:
+                # Update chart for responsiveness
+                tpsl_chart.update_layout(
+                    height=300 if st.session_state.get('mobile_view', False) else 350,
+                    margin=dict(l=40, r=40, t=50, b=40)
+                )
                 st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-                st.plotly_chart(tpsl_chart, use_container_width=True)
+                st.plotly_chart(tpsl_chart, use_container_width=True, config={'responsive': True})
                 st.markdown('</div>', unsafe_allow_html=True)
     
     def _render_data_table(self, filtered_df: pd.DataFrame):
-        """Render detailed data table"""
-        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">📋 Detailed Trading Records</h3>', unsafe_allow_html=True)
+        """Render responsive detailed data table"""
+        st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin: 2rem 0 1.5rem 0; text-align: center;">📋 Detailed Trading Records</h3>', unsafe_allow_html=True)
         
         # Prepare display columns
         display_cols = []
@@ -1057,12 +1140,33 @@ class LuxQuantDashboard:
             if col in filtered_df.columns:
                 display_cols.append(col)
         
-        # Display the data table
+        # Display the data table with responsive styling
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         if display_cols:
-            st.dataframe(filtered_df[display_cols], use_container_width=True, height=300)
+            # Create a responsive dataframe display
+            display_df = filtered_df[display_cols].copy()
+            
+            # Format for better mobile display
+            if len(display_df.columns) > 4:
+                st.markdown(
+                    '<div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">',
+                    unsafe_allow_html=True
+                )
+            
+            st.dataframe(
+                display_df, 
+                use_container_width=True, 
+                height=250 if st.session_state.get('mobile_view', False) else 300
+            )
+            
+            if len(display_df.columns) > 4:
+                st.markdown('</div>', unsafe_allow_html=True)
         else:
-            st.dataframe(filtered_df, use_container_width=True, height=300)
+            st.dataframe(
+                filtered_df, 
+                use_container_width=True, 
+                height=250 if st.session_state.get('mobile_view', False) else 300
+            )
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ==================== APPLICATION ENTRY POINT ====================
