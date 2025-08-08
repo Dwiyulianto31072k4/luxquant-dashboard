@@ -17,16 +17,20 @@ class Config:
     SPREADSHEET_ID = "1g3XL1EllHoWV3jhmi7gT3at6MtCNTJBo8DQ1WyWhMEo"
     SHEET_NAME = "Sheet1"
     
-    # Color scheme
+    # Binance Color Scheme
     COLORS = {
-        'primary': '#FFD700',      # Gold
-        'secondary': '#FFFFFF',    # White
-        'background': '#000000',   # Black
-        'dark_gold': '#B8860B',    # Dark goldenrod
-        'grid': '#333333',         # Grid color
-        'success': '#4CAF50',      # Green
-        'warning': '#FF9800',      # Orange
-        'error': '#F44336'         # Red
+        'primary': '#F0B90B',      # Binance Yellow
+        'secondary': '#EAECEF',    # Light Gray Text
+        'background': '#0B0E11',   # Dark Background
+        'card_bg': '#181A20',      # Card Background
+        'border': '#2B3139',       # Border Gray
+        'text_primary': '#FFFFFF', # Primary Text
+        'text_secondary': '#B7BDC6', # Secondary Text
+        'success': '#0ECB81',      # Binance Green
+        'danger': '#F6465D',       # Binance Red
+        'warning': '#F0B90B',      # Binance Yellow
+        'grid': '#2B3139',         # Grid Lines
+        'hover': '#1E2329'         # Hover Background
     }
 
 # ==================== STYLING ====================
@@ -35,123 +39,147 @@ class StyleManager:
     def apply_custom_css():
         st.markdown("""
         <style>
-        /* Main app styling */
+        /* Import Binance-like fonts */
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+        
+        /* Main app styling with Binance colors */
         .stApp {
-            background: #000000;
-            color: #ffffff;
+            background: #0B0E11;
+            color: #EAECEF;
+            font-family: 'IBM Plex Sans', sans-serif;
         }
         
-        /* Header styling */
+        /* Header styling with Binance theme */
         .main-header {
             text-align: center;
-            padding: 2rem 0;
-            background: #000000;
-            border-radius: 15px;
+            padding: 2.5rem 0;
+            background: linear-gradient(135deg, #181A20 0%, #1E2329 100%);
+            border-radius: 16px;
             margin-bottom: 2rem;
-            border: 1px solid #FFD700;
+            border: 1px solid #2B3139;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
         
         .main-title {
-            font-size: 3rem;
+            font-size: 3.2rem;
             font-weight: 700;
-            background: linear-gradient(45deg, #FFD700, #FFF200);
+            background: linear-gradient(135deg, #F0B90B 0%, #FCD535 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            margin-bottom: 0.8rem;
+            text-shadow: 0 0 30px rgba(240, 185, 11, 0.4);
+            font-family: 'IBM Plex Sans', sans-serif;
         }
         
         .subtitle {
-            font-size: 1.3rem;
-            color: #FFFFFF;
+            font-size: 1.1rem;
+            color: #B7BDC6;
             margin-bottom: 1rem;
             font-weight: 400;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            line-height: 1.5;
         }
         
         .accuracy-badge {
-            background: linear-gradient(45deg, #FFD700, #FFF200);
-            color: #000000;
-            padding: 0.7rem 1.5rem;
-            border-radius: 25px;
-            font-weight: 700;
+            background: linear-gradient(135deg, #F0B90B 0%, #FCD535 100%);
+            color: #0B0E11;
+            padding: 0.8rem 1.8rem;
+            border-radius: 8px;
+            font-weight: 600;
             display: inline-block;
-            margin: 0.3rem;
-            font-size: 1rem;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            margin: 0.4rem;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
+            transition: all 0.3s ease;
         }
         
-        /* Stats cards */
+        .accuracy-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(240, 185, 11, 0.4);
+        }
+        
+        /* Binance-style stats cards */
         .stat-card {
-            background: #000000;
-            border: 2px solid #FFD700;
-            border-radius: 15px;
-            padding: 1.5rem;
+            background: linear-gradient(135deg, #181A20 0%, #1E2329 100%);
+            border: 1px solid #2B3139;
+            border-radius: 12px;
+            padding: 1.8rem;
             text-align: center;
             min-width: 200px;
             flex: 1;
             max-width: 300px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stat-card:hover {
+            border-color: #F0B90B;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(240, 185, 11, 0.1);
         }
         
         .stat-icon {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
+            font-size: 2.2rem;
+            margin-bottom: 0.8rem;
+            filter: brightness(1.2);
         }
         
         .stat-value {
             font-size: 2.8rem;
-            font-weight: 800;
-            color: #FFD700;
-            margin: 0.5rem 0;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            font-weight: 700;
+            color: #F0B90B;
+            margin: 0.8rem 0;
+            text-shadow: 0 0 15px rgba(240, 185, 11, 0.3);
+            font-family: 'IBM Plex Sans', sans-serif;
         }
         
         .stat-label {
-            font-size: 1rem;
-            color: #FFFFFF;
+            font-size: 0.9rem;
+            color: #B7BDC6;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
             font-weight: 500;
-            line-height: 1.3;
+            line-height: 1.4;
         }
         
-        /* Chart containers */
+        /* Chart containers with Binance styling */
         .chart-container {
-            background: #000000;
-            border: 2px solid #FFD700;
-            border-radius: 15px;
+            background: linear-gradient(135deg, #181A20 0%, #1E2329 100%);
+            border: 1px solid #2B3139;
+            border-radius: 12px;
             padding: 1.5rem;
             margin: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         
-        /* Buttons */
+        /* Binance-style buttons */
         .stButton button {
-            background: linear-gradient(45deg, #FFD700, #FFF200);
-            color: #000000;
+            background: linear-gradient(135deg, #F0B90B 0%, #FCD535 100%);
+            color: #0B0E11;
             border: none;
-            border-radius: 25px;
-            padding: 0.8rem 2rem;
-            font-weight: 700;
-            font-size: 1.1rem;
+            border-radius: 8px;
+            padding: 0.9rem 2.2rem;
+            font-weight: 600;
+            font-size: 1rem;
             transition: all 0.3s ease;
             width: 100%;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 4px 12px rgba(240, 185, 11, 0.3);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-family: 'IBM Plex Sans', sans-serif;
         }
         
         .stButton button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
-            background: linear-gradient(45deg, #FFF200, #FFD700);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(240, 185, 11, 0.4);
+            background: linear-gradient(135deg, #FCD535 0%, #F0B90B 100%);
         }
         
-        /* Radio buttons */
+        /* Radio buttons with better visibility */
         .stRadio > div {
-            background: #000000;
-            border-radius: 15px;
+            background: linear-gradient(135deg, #181A20 0%, #1E2329 100%);
+            border-radius: 12px;
             padding: 1.5rem;
-            border: 2px solid #FFD700;
+            border: 1px solid #2B3139;
             text-align: center;
         }
         
@@ -161,20 +189,85 @@ class StyleManager:
             font-weight: 600 !important;
         }
         
-        /* Data table */
-        .stDataFrame {
-            background: #000000;
-            border-radius: 10px;
-            border: 1px solid #FFD700;
+        .stRadio div[role="radiogroup"] > label > div {
+            color: #FFFFFF !important;
+            font-weight: 600 !important;
         }
         
-        /* Override text colors */
+        .stRadio div[role="radiogroup"] > label:hover {
+            color: #F0B90B !important;
+        }
+        
+        .stRadio div[role="radiogroup"] > label > div:first-child {
+            border-color: #F0B90B !important;
+        }
+        
+        /* Data table styling */
+        .stDataFrame {
+            background: #181A20;
+            border-radius: 8px;
+            border: 1px solid #2B3139;
+        }
+        
+        /* Text color overrides */
         .stMarkdown p, .stMarkdown span, .stMarkdown div {
-            color: #FFFFFF !important;
+            color: #EAECEF !important;
         }
         
         h1, h2, h3, h4, h5, h6 {
-            color: #FFD700 !important;
+            color: #F0B90B !important;
+            font-family: 'IBM Plex Sans', sans-serif !important;
+        }
+        
+        /* Success/Warning/Error messages */
+        .stSuccess {
+            background: linear-gradient(135deg, #0ECB81 0%, #03A66D 100%);
+            border-radius: 8px;
+            border: none;
+        }
+        
+        .stWarning {
+            background: linear-gradient(135deg, #F0B90B 0%, #D9A441 100%);
+            border-radius: 8px;
+            border: none;
+        }
+        
+        .stError {
+            background: linear-gradient(135deg, #F6465D 0%, #D73C52 100%);
+            border-radius: 8px;
+            border: none;
+        }
+        
+        /* Sidebar styling */
+        .css-1d391kg {
+            background: #0B0E11;
+        }
+        
+        /* Remove default Streamlit styling */
+        .stApp > header {
+            background: transparent;
+        }
+        
+        .stApp > .main > .block-container {
+            padding-top: 2rem;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #181A20;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #2B3139;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #F0B90B;
         }
         </style>
         """, unsafe_allow_html=True)
@@ -492,17 +585,17 @@ class ChartBuilder:
         
         fig.update_layout(
             title=dict(text="Winrate Trend", font=dict(size=18, color=Config.COLORS['primary'])),
-            xaxis_title=dict(text="Date", font=dict(color=Config.COLORS['secondary'])),
-            yaxis_title=dict(text="Winrate (%)", font=dict(color=Config.COLORS['secondary'])),
+            xaxis_title=dict(text="Date", font=dict(color=Config.COLORS['text_secondary'])),
+            yaxis_title=dict(text="Winrate (%)", font=dict(color=Config.COLORS['text_secondary'])),
             plot_bgcolor=Config.COLORS['background'],
             paper_bgcolor=Config.COLORS['background'],
-            font=dict(color=Config.COLORS['secondary'], size=12),
+            font=dict(color=Config.COLORS['text_secondary'], size=12),
             height=350,
             showlegend=False,
             yaxis=dict(range=[0, 100], gridcolor=Config.COLORS['grid'], 
-                      tickfont=dict(color='#B7BDC6', size=11), dtick=10),
+                      tickfont=dict(color=Config.COLORS['text_secondary'], size=11), dtick=10),
             xaxis=dict(gridcolor=Config.COLORS['grid'], 
-                      tickfont=dict(color='#B7BDC6', size=11)),
+                      tickfont=dict(color=Config.COLORS['text_secondary'], size=11)),
             margin=dict(l=60, r=60, t=60, b=60)
         )
         
@@ -521,36 +614,36 @@ class ChartBuilder:
         
         fig = go.Figure()
         
-        # Add TP bars
+        # Add TP bars with Binance green
         fig.add_trace(go.Bar(
             x=df['Date_display'], y=df['TP'], name='Take Profit',
-            marker_color=Config.COLORS['primary'],
+            marker_color=Config.COLORS['success'],
             hovertemplate='<b>Date:</b> %{x}<br><b>TP:</b> %{y}<extra></extra>',
             opacity=0.9
         ))
         
-        # Add SL bars
+        # Add SL bars with Binance red
         fig.add_trace(go.Bar(
             x=df['Date_display'], y=df['SL'], name='Stop Loss',
-            marker_color=Config.COLORS['dark_gold'],
+            marker_color=Config.COLORS['danger'],
             hovertemplate='<b>Date:</b> %{x}<br><b>SL:</b> %{y}<extra></extra>',
             opacity=0.9
         ))
         
         fig.update_layout(
             title=dict(text="TP vs SL", font=dict(size=18, color=Config.COLORS['primary'])),
-            xaxis_title=dict(text="Date", font=dict(color=Config.COLORS['primary'])),
-            yaxis_title=dict(text="Count", font=dict(color=Config.COLORS['primary'])),
+            xaxis_title=dict(text="Date", font=dict(color=Config.COLORS['text_secondary'])),
+            yaxis_title=dict(text="Count", font=dict(color=Config.COLORS['text_secondary'])),
             plot_bgcolor=Config.COLORS['background'],
             paper_bgcolor=Config.COLORS['background'],
-            font=dict(color=Config.COLORS['primary'], size=12),
+            font=dict(color=Config.COLORS['text_primary'], size=12),
             height=350, barmode='group',
-            legend=dict(x=0, y=1, font=dict(color=Config.COLORS['primary'], size=12),
+            legend=dict(x=0, y=1, font=dict(color=Config.COLORS['text_primary'], size=12),
                        bgcolor=Config.COLORS['background']),
             yaxis=dict(gridcolor=Config.COLORS['grid'], 
-                      tickfont=dict(color=Config.COLORS['primary'], size=11)),
+                      tickfont=dict(color=Config.COLORS['text_secondary'], size=11)),
             xaxis=dict(gridcolor=Config.COLORS['grid'], 
-                      tickfont=dict(color=Config.COLORS['primary'], size=11)),
+                      tickfont=dict(color=Config.COLORS['text_secondary'], size=11)),
             margin=dict(l=60, r=60, t=60, b=60)
         )
         
