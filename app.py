@@ -38,26 +38,31 @@ def apply_custom_css():
     .main-title {
         font-size: 3rem;
         font-weight: 700;
-        background: linear-gradient(45deg, #ffd700, #ffed4e);
+        background: linear-gradient(45deg, #FFD700, #FFF200);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin-bottom: 0.5rem;
+        text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
     }
     
     .subtitle {
-        font-size: 1.2rem;
-        color: #b0b0b0;
+        font-size: 1.3rem;
+        color: #FFFFFF;
         margin-bottom: 1rem;
+        font-weight: 400;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     }
     
     .accuracy-badge {
-        background: linear-gradient(45deg, #ffd700, #ffed4e);
-        color: #000;
-        padding: 0.5rem 1rem;
+        background: linear-gradient(45deg, #FFD700, #FFF200);
+        color: #000000;
+        padding: 0.7rem 1.5rem;
         border-radius: 25px;
-        font-weight: 600;
+        font-weight: 700;
         display: inline-block;
-        margin-top: 1rem;
+        margin: 0.3rem;
+        font-size: 1rem;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
     }
     
     /* Stats cards */
@@ -87,17 +92,20 @@ def apply_custom_css():
     }
     
     .stat-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #ffd700;
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: #FFD700;
         margin: 0.5rem 0;
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
     }
     
     .stat-label {
-        font-size: 0.9rem;
-        color: #b0b0b0;
+        font-size: 1rem;
+        color: #FFFFFF;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        font-weight: 500;
+        line-height: 1.3;
     }
     
     /* Chart containers */
@@ -112,20 +120,24 @@ def apply_custom_css():
     
     /* Buttons */
     .stButton button {
-        background: linear-gradient(45deg, #ffd700, #ffed4e);
-        color: #000;
+        background: linear-gradient(45deg, #FFD700, #FFF200);
+        color: #000000;
         border: none;
         border-radius: 25px;
-        padding: 0.7rem 2rem;
-        font-weight: 600;
-        font-size: 1rem;
+        padding: 0.8rem 2rem;
+        font-weight: 700;
+        font-size: 1.1rem;
         transition: all 0.3s ease;
         width: 100%;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     .stButton button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+        background: linear-gradient(45deg, #FFF200, #FFD700);
     }
     
     /* Radio buttons */
@@ -637,24 +649,28 @@ def main():
         <div class="main-title">LuxQuant VIP | 智汇尊享会</div>
         <div class="subtitle">Tools for Automated Crypto Trading Setup 24/7</div>
         <div class="subtitle">Help traders identify market opportunities without having to monitor charts continuously.</div>
-        <div class="accuracy-badge">Historical Accuracy of 87.9% (No Future Guarantee)</div>
+        <div class="accuracy-badge">⚡ 24/7 Automated Signals ⚡</div>
+        <div class="accuracy-badge" style="margin-top: 0.5rem;">Historical Accuracy of 87.9% (No Future Guarantee)</div>
     </div>
     """, unsafe_allow_html=True)
     
     # Period selector
     st.markdown("### 📊 Trading Performance Analysis")
+    st.markdown("<br>", unsafe_allow_html=True)
     
     col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
     
     with col2:
+        st.markdown('<p style="color: #FFFFFF; font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem;">Select Time Period:</p>', unsafe_allow_html=True)
         period = st.radio(
-            "Select Time Period:",
+            "",
             options=["week", "month", "all"],
             format_func=lambda x: {"week": "📅 Last Week", "month": "📆 Last Month", "all": "📈 All Time"}[x],
             horizontal=False
         )
     
     with col3:
+        st.markdown('<div style="margin-top: 1.8rem;"></div>', unsafe_allow_html=True)
         load_button = st.button("🚀 Load Trading Statistics", use_container_width=True)
     
     if load_button:
@@ -679,7 +695,7 @@ def main():
                         
                         if stats:
                             # Display main statistics
-                            st.markdown("### 📈 Key Performance Metrics")
+                            st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin-bottom: 1.5rem;">📈 Key Performance Metrics</h3>', unsafe_allow_html=True)
                             
                             # Create stats cards
                             col1, col2, col3, col4 = st.columns(4)
@@ -721,7 +737,7 @@ def main():
                                 """, unsafe_allow_html=True)
                         
                         # Charts section
-                        st.markdown("### 📊 Performance Analytics")
+                        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">📊 Performance Analytics</h3>', unsafe_allow_html=True)
                         
                         # Combined dashboard
                         combined_chart = create_combined_dashboard_chart(filtered_df)
@@ -748,7 +764,7 @@ def main():
                                 st.markdown('</div>', unsafe_allow_html=True)
                         
                         # Detailed data table
-                        st.markdown("### 📋 Detailed Trading Records")
+                        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">📋 Detailed Trading Records</h3>', unsafe_allow_html=True)
                         
                         # Prepare display columns
                         display_cols = []
@@ -772,7 +788,7 @@ def main():
                             st.markdown('</div>', unsafe_allow_html=True)
                         
                         # Additional insights
-                        st.markdown("### 💡 Trading Insights")
+                        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">💡 Trading Insights</h3>', unsafe_allow_html=True)
                         
                         col1, col2, col3 = st.columns(3)
                         
@@ -865,7 +881,7 @@ def main():
                 st.error(f"Debug info: {type(e).__name__}")
     
     # Action buttons
-    st.markdown("### 🚀 Take Action")
+    st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">🚀 Take Action</h3>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     
@@ -880,8 +896,6 @@ def main():
     with col3:
         if st.button("📞 CONTACT SUPPORT", use_container_width=True):
             st.info("💬 Connecting to support team...")
-    
-
     
     # Footer
     st.markdown("---")
