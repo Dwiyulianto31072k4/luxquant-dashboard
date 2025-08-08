@@ -21,7 +21,7 @@ def apply_custom_css():
     <style>
     /* Main app styling */
     .stApp {
-        background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+        background: #000000;
         color: #ffffff;
     }
     
@@ -29,10 +29,10 @@ def apply_custom_css():
     .main-header {
         text-align: center;
         padding: 2rem 0;
-        background: linear-gradient(135deg, #16213e 0%, #0f0f23 100%);
+        background: #000000;
         border-radius: 15px;
         margin-bottom: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid #FFD700;
     }
     
     .main-title {
@@ -75,9 +75,8 @@ def apply_custom_css():
     }
     
     .stat-card {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: #000000;
+        border: 2px solid #FFD700;
         border-radius: 15px;
         padding: 1.5rem;
         text-align: center;
@@ -110,9 +109,8 @@ def apply_custom_css():
     
     /* Chart containers */
     .chart-container {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: #000000;
+        border: 2px solid #FFD700;
         border-radius: 15px;
         padding: 1.5rem;
         margin: 1rem 0;
@@ -142,24 +140,22 @@ def apply_custom_css():
     
     /* Radio buttons */
     .stRadio > div {
-        background: rgba(255, 255, 255, 0.1);
+        background: #000000;
         border-radius: 10px;
         padding: 1rem;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid #FFD700;
     }
     
     /* Data table */
     .stDataFrame {
-        background: rgba(255, 255, 255, 0.1);
+        background: #000000;
         border-radius: 10px;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid #FFD700;
     }
     
     /* Sidebar */
     .css-1d391kg {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        background: #000000;
     }
     
     /* Success/Warning messages */
@@ -430,46 +426,46 @@ def create_winrate_chart(df):
     
     fig = go.Figure()
     
-    # Add winrate line with better visibility
+    # Add winrate line with yellow color
     fig.add_trace(go.Scatter(
         x=df['Date_display'],
         y=df['Winrate_num'],
         mode='lines+markers',
         name='Winrate',
-        line=dict(color='#00FF88', width=4),  # Bright green for better visibility
-        marker=dict(size=10, color='#00FF88', line=dict(width=3, color='#FFFFFF')),
+        line=dict(color='#FFD700', width=4),
+        marker=dict(size=10, color='#FFD700', line=dict(width=3, color='#000000')),
         hovertemplate='<b>Date:</b> %{x}<br><b>Winrate:</b> %{y}%<extra></extra>'
     ))
     
-    # Add average line with better contrast
+    # Add average line
     avg_winrate = df['Winrate_num'].mean()
-    fig.add_hline(y=avg_winrate, line_dash="dash", line_color="#FF4444", line_width=2,
+    fig.add_hline(y=avg_winrate, line_dash="dash", line_color="#FFD700", line_width=2,
                   annotation_text=f"Average: {avg_winrate:.1f}%", 
-                  annotation_font_color="#FF4444", annotation_font_size=14)
+                  annotation_font_color="#FFD700", annotation_font_size=14)
     
     # Add 70% benchmark line
-    fig.add_hline(y=70, line_dash="dot", line_color="#FFD700", line_width=2,
+    fig.add_hline(y=70, line_dash="dot", line_color="#FFFF00", line_width=2,
                   annotation_text="Target: 70%", 
-                  annotation_font_color="#FFD700", annotation_font_size=12)
+                  annotation_font_color="#FFFF00", annotation_font_size=12)
     
     fig.update_layout(
-        title=dict(text="Winrate Trend", font=dict(size=18, color='#FFFFFF')),
-        xaxis_title=dict(text="Date", font=dict(color='#FFFFFF')),
-        yaxis_title=dict(text="Winrate (%)", font=dict(color='#FFFFFF')),
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#FFFFFF', size=12),
+        title=dict(text="Winrate Trend", font=dict(size=18, color='#FFD700')),
+        xaxis_title=dict(text="Date", font=dict(color='#FFD700')),
+        yaxis_title=dict(text="Winrate (%)", font=dict(color='#FFD700')),
+        plot_bgcolor='#000000',
+        paper_bgcolor='#000000',
+        font=dict(color='#FFD700', size=12),
         height=350,
         showlegend=False,
         yaxis=dict(
             range=[0, 100], 
-            gridcolor='rgba(255,255,255,0.3)',
-            tickfont=dict(color='#FFFFFF', size=11),
-            dtick=10  # Show ticks every 10%
+            gridcolor='#333333',
+            tickfont=dict(color='#FFD700', size=11),
+            dtick=10
         ),
         xaxis=dict(
-            gridcolor='rgba(255,255,255,0.3)',
-            tickfont=dict(color='#FFFFFF', size=11)
+            gridcolor='#333333',
+            tickfont=dict(color='#FFD700', size=11)
         ),
         margin=dict(l=60, r=60, t=60, b=60)
     )
@@ -488,47 +484,47 @@ def create_tpsl_chart(df):
     
     fig = go.Figure()
     
-    # Add TP bars with bright green
+    # Add TP bars with yellow color
     fig.add_trace(go.Bar(
         x=df['Date_display'],
         y=df['TP'],
         name='Take Profit',
-        marker_color='#00FF88',  # Bright green
+        marker_color='#FFD700',
         hovertemplate='<b>Date:</b> %{x}<br><b>TP:</b> %{y}<extra></extra>',
-        opacity=0.8
+        opacity=0.9
     ))
     
-    # Add SL bars with bright red
+    # Add SL bars with darker yellow
     fig.add_trace(go.Bar(
         x=df['Date_display'],
         y=df['SL'],
         name='Stop Loss',
-        marker_color='#FF4444',  # Bright red
+        marker_color='#B8860B',  # Dark goldenrod
         hovertemplate='<b>Date:</b> %{x}<br><b>SL:</b> %{y}<extra></extra>',
-        opacity=0.8
+        opacity=0.9
     ))
     
     fig.update_layout(
-        title=dict(text="TP vs SL", font=dict(size=18, color='#FFFFFF')),
-        xaxis_title=dict(text="Date", font=dict(color='#FFFFFF')),
-        yaxis_title=dict(text="Count", font=dict(color='#FFFFFF')),
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#FFFFFF', size=12),
+        title=dict(text="TP vs SL", font=dict(size=18, color='#FFD700')),
+        xaxis_title=dict(text="Date", font=dict(color='#FFD700')),
+        yaxis_title=dict(text="Count", font=dict(color='#FFD700')),
+        plot_bgcolor='#000000',
+        paper_bgcolor='#000000',
+        font=dict(color='#FFD700', size=12),
         height=350,
         barmode='group',
         legend=dict(
             x=0, y=1,
-            font=dict(color='#FFFFFF', size=12),
-            bgcolor='rgba(0,0,0,0.5)'
+            font=dict(color='#FFD700', size=12),
+            bgcolor='#000000'
         ),
         yaxis=dict(
-            gridcolor='rgba(255,255,255,0.3)',
-            tickfont=dict(color='#FFFFFF', size=11)
+            gridcolor='#333333',
+            tickfont=dict(color='#FFD700', size=11)
         ),
         xaxis=dict(
-            gridcolor='rgba(255,255,255,0.3)',
-            tickfont=dict(color='#FFFFFF', size=11)
+            gridcolor='#333333',
+            tickfont=dict(color='#FFD700', size=11)
         ),
         margin=dict(l=60, r=60, t=60, b=60)
     )
@@ -551,12 +547,12 @@ def create_combined_dashboard_chart(df):
     )
     
     if 'Winrate_num' in df.columns:
-        # Winrate trend with improved colors
+        # Winrate trend with yellow colors
         fig.add_trace(
             go.Scatter(x=df['Date_display'], y=df['Winrate_num'], 
                       mode='lines+markers', name='Winrate',
-                      line=dict(color='#00FF88', width=3),
-                      marker=dict(size=6, color='#00FF88')),
+                      line=dict(color='#FFD700', width=3),
+                      marker=dict(size=6, color='#FFD700')),
             row=1, col=1
         )
         
@@ -564,69 +560,69 @@ def create_combined_dashboard_chart(df):
         fig.update_yaxes(range=[0, 100], row=1, col=1)
     
     if 'TP' in df.columns and 'SL' in df.columns:
-        # TP vs SL with bright colors
+        # TP vs SL with yellow tones
         fig.add_trace(
             go.Bar(x=df['Date_display'], y=df['TP'], name='TP', 
-                   marker_color='#00FF88', opacity=0.8),
+                   marker_color='#FFD700', opacity=0.9),
             row=1, col=2
         )
         fig.add_trace(
             go.Bar(x=df['Date_display'], y=df['SL'], name='SL',
-                   marker_color='#FF4444', opacity=0.8),
+                   marker_color='#B8860B', opacity=0.9),
             row=1, col=2
         )
         
-        # Cumulative performance with better visibility
+        # Cumulative performance with yellow tones
         cumulative_tp = df['TP'].cumsum()
         cumulative_sl = df['SL'].cumsum()
         fig.add_trace(
             go.Scatter(x=df['Date_display'], y=cumulative_tp, 
                       mode='lines', name='Cumulative TP',
-                      line=dict(color='#00FF88', width=3)),
+                      line=dict(color='#FFD700', width=3)),
             row=2, col=1
         )
         fig.add_trace(
             go.Scatter(x=df['Date_display'], y=cumulative_sl,
                       mode='lines', name='Cumulative SL',
-                      line=dict(color='#FF4444', width=3)),
+                      line=dict(color='#B8860B', width=3)),
             row=2, col=1
         )
     
     if 'Total_Signal' in df.columns:
-        # Daily signals with blue color
+        # Daily signals with yellow color
         fig.add_trace(
             go.Bar(x=df['Date_display'], y=df['Total_Signal'], 
-                   name='Daily Signals', marker_color='#3399FF', opacity=0.8),
+                   name='Daily Signals', marker_color='#FFD700', opacity=0.9),
             row=2, col=2
         )
     
-    # Update layout with better styling
+    # Update layout with black and yellow theme
     fig.update_layout(
         height=700,
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#FFFFFF', size=12),
+        plot_bgcolor='#000000',
+        paper_bgcolor='#000000',
+        font=dict(color='#FFD700', size=12),
         title_text="LuxQuant VIP Trading Dashboard",
         title_font=dict(size=20, color='#FFD700'),
         showlegend=True,
         legend=dict(
-            font=dict(color='#FFFFFF'),
-            bgcolor='rgba(0,0,0,0.5)'
+            font=dict(color='#FFD700'),
+            bgcolor='#000000'
         )
     )
     
-    # Update all subplot titles to white
+    # Update all subplot titles to yellow
     for i in fig['layout']['annotations']:
-        i['font'] = dict(color='#FFFFFF', size=14)
+        i['font'] = dict(color='#FFD700', size=14)
     
     # Update axes styling
     fig.update_xaxes(
-        gridcolor='rgba(255,255,255,0.3)',
-        tickfont=dict(color='#FFFFFF', size=10)
+        gridcolor='#333333',
+        tickfont=dict(color='#FFD700', size=10)
     )
     fig.update_yaxes(
-        gridcolor='rgba(255,255,255,0.3)',
-        tickfont=dict(color='#FFFFFF', size=10)
+        gridcolor='#333333',
+        tickfont=dict(color='#FFD700', size=10)
     )
     
     return fig
