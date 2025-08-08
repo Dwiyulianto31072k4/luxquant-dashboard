@@ -10,260 +10,278 @@ from plotly.subplots import make_subplots
 import datetime
 import re
 from pathlib import Path
+from typing import Optional, Dict, Any
 
-# -------- GOOGLE SHEETS CONFIGURATION --------
-SPREADSHEET_ID = "1g3XL1EllHoWV3jhmi7gT3at6MtCNTJBo8DQ1WyWhMEo"
-SHEET_NAME = "Sheet1"
+# ==================== CONFIGURATION ====================
+class Config:
+    SPREADSHEET_ID = "1g3XL1EllHoWV3jhmi7gT3at6MtCNTJBo8DQ1WyWhMEo"
+    SHEET_NAME = "Sheet1"
+    
+    # Color scheme
+    COLORS = {
+        'primary': '#FFD700',      # Gold
+        'secondary': '#FFFFFF',    # White
+        'background': '#000000',   # Black
+        'dark_gold': '#B8860B',    # Dark goldenrod
+        'grid': '#333333',         # Grid color
+        'success': '#4CAF50',      # Green
+        'warning': '#FF9800',      # Orange
+        'error': '#F44336'         # Red
+    }
 
-# -------- STYLING --------
-def apply_custom_css():
-    st.markdown("""
-    <style>
-    /* Main app styling */
-    .stApp {
-        background: #000000;
-        color: #ffffff;
-    }
-    
-    /* Header styling */
-    .main-header {
-        text-align: center;
-        padding: 2rem 0;
-        background: #000000;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        border: 1px solid #FFD700;
-    }
-    
-    .main-title {
-        font-size: 3rem;
-        font-weight: 700;
-        background: linear-gradient(45deg, #FFD700, #FFF200);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0.5rem;
-        text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-    }
-    
-    .subtitle {
-        font-size: 1.3rem;
-        color: #FFFFFF;
-        margin-bottom: 1rem;
-        font-weight: 400;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    }
-    
-    .accuracy-badge {
-        background: linear-gradient(45deg, #FFD700, #FFF200);
-        color: #000000;
-        padding: 0.7rem 1.5rem;
-        border-radius: 25px;
-        font-weight: 700;
-        display: inline-block;
-        margin: 0.3rem;
-        font-size: 1rem;
-        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-    }
-    
-    /* Stats cards */
-    .stats-container {
-        display: flex;
-        gap: 1.5rem;
-        margin: 2rem 0;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    
-    .stat-card {
-        background: #000000;
-        border: 2px solid #FFD700;
-        border-radius: 15px;
-        padding: 1.5rem;
-        text-align: center;
-        min-width: 200px;
-        flex: 1;
-        max-width: 300px;
-    }
-    
-    .stat-icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .stat-value {
-        font-size: 2.8rem;
-        font-weight: 800;
-        color: #FFD700;
-        margin: 0.5rem 0;
-        text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
-    }
-    
-    .stat-label {
-        font-size: 1rem;
-        color: #FFFFFF;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-weight: 500;
-        line-height: 1.3;
-    }
-    
-    /* Chart containers */
-    .chart-container {
-        background: #000000;
-        border: 2px solid #FFD700;
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-    }
-    
-    /* Buttons */
-    .stButton button {
-        background: linear-gradient(45deg, #FFD700, #FFF200);
-        color: #000000;
-        border: none;
-        border-radius: 25px;
-        padding: 0.8rem 2rem;
-        font-weight: 700;
-        font-size: 1.1rem;
-        transition: all 0.3s ease;
-        width: 100%;
-        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .stButton button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
-        background: linear-gradient(45deg, #FFF200, #FFD700);
-    }
-    
-    /* Radio buttons */
-    .stRadio > div {
-        background: #000000;
-        border-radius: 15px;
-        padding: 1.5rem;
-        border: 2px solid #FFD700;
-        text-align: center;
-    }
-    
-    .stRadio label {
-        color: #FFFFFF !important;
-        font-size: 1.1rem !important;
-        font-weight: 600 !important;
-    }
-    
-    .stRadio div[role="radiogroup"] {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-    }
-    
-    /* Data table */
-    .stDataFrame {
-        background: #000000;
-        border-radius: 10px;
-        border: 1px solid #FFD700;
-    }
-    
-    /* Sidebar */
-    .css-1d391kg {
-        background: #000000;
-    }
-    
-    /* Override any gray text */
-    .stMarkdown p, .stMarkdown span, .stMarkdown div {
-        color: #FFFFFF !important;
-    }
-    
-    /* Ensure all headings are either yellow or white */
-    h1, h2, h3, h4, h5, h6 {
-        color: #FFD700 !important;
-    }
-    
-    /* Radio button text fix */
-    .stRadio > div > label > div {
-        color: #FFFFFF !important;
-    }
-    
-    /* Success/Warning messages */
-    .stSuccess {
-        background: linear-gradient(45deg, #4caf50, #45a049);
-        border-radius: 10px;
-    }
-    
-    .stWarning {
-        background: linear-gradient(45deg, #ff9800, #f57c00);
-        border-radius: 10px;
-    }
-    
-    .stError {
-        background: linear-gradient(45deg, #f44336, #d32f2f);
-        border-radius: 10px;
-    }
-    
+# ==================== STYLING ====================
+class StyleManager:
+    @staticmethod
+    def apply_custom_css():
+        st.markdown("""
+        <style>
+        /* Main app styling */
+        .stApp {
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        /* Header styling */
+        .main-header {
+            text-align: center;
+            padding: 2rem 0;
+            background: #000000;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            border: 1px solid #FFD700;
+        }
+        
+        .main-title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #FFD700, #FFF200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            color: #FFFFFF;
+            margin-bottom: 1rem;
+            font-weight: 400;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .accuracy-badge {
+            background: linear-gradient(45deg, #FFD700, #FFF200);
+            color: #000000;
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 700;
+            display: inline-block;
+            margin: 0.3rem;
+            font-size: 1rem;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+        
+        /* Stats cards */
+        .stat-card {
+            background: #000000;
+            border: 2px solid #FFD700;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            min-width: 200px;
+            flex: 1;
+            max-width: 300px;
+        }
+        
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #FFD700;
+            margin: 0.5rem 0;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            color: #FFFFFF;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+            line-height: 1.3;
+        }
+        
+        /* Chart containers */
+        .chart-container {
+            background: #000000;
+            border: 2px solid #FFD700;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        /* Buttons */
+        .stButton button {
+            background: linear-gradient(45deg, #FFD700, #FFF200);
+            color: #000000;
+            border: none;
+            border-radius: 25px;
+            padding: 0.8rem 2rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stButton button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+            background: linear-gradient(45deg, #FFF200, #FFD700);
+        }
+        
+        /* Radio buttons */
+        .stRadio > div {
+            background: #000000;
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 2px solid #FFD700;
+            text-align: center;
+        }
+        
+        .stRadio label {
+            color: #FFFFFF !important;
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+        }
+        
+        /* Data table */
+        .stDataFrame {
+            background: #000000;
+            border-radius: 10px;
+            border: 1px solid #FFD700;
+        }
+        
+        /* Override text colors */
+        .stMarkdown p, .stMarkdown span, .stMarkdown div {
+            color: #FFFFFF !important;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: #FFD700 !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 
-    </style>
-    """, unsafe_allow_html=True)
-
-# -------- GOOGLE SHEETS CONNECTION --------
-@st.cache_resource
-def connect_to_gsheet():
-    try:
+# ==================== DATA MANAGER ====================
+class DataManager:
+    def __init__(self):
+        self._sheet = None
+    
+    @st.cache_resource
+    def connect_to_gsheet(_self):
+        """Establish connection to Google Sheets"""
+        try:
+            credentials_info = _self._get_credentials()
+            credentials = Credentials.from_service_account_info(
+                credentials_info,
+                scopes=[
+                    "https://www.googleapis.com/auth/spreadsheets",
+                    "https://www.googleapis.com/auth/drive",
+                ]
+            )
+            client = gspread.authorize(credentials)
+            sheet = client.open_by_key(Config.SPREADSHEET_ID).worksheet(Config.SHEET_NAME)
+            return sheet
+        except Exception as e:
+            st.error(f"Google Sheets connection error: {str(e)}")
+            raise e
+    
+    def _get_credentials(self) -> Dict[str, Any]:
+        """Get Google Sheets credentials from various sources"""
         if "gcp_service_account" in st.secrets:
-            credentials_info = st.secrets["gcp_service_account"]
+            return st.secrets["gcp_service_account"]
         elif "credentials_json" in st.secrets:
             if isinstance(st.secrets["credentials_json"], dict):
-                credentials_info = st.secrets["credentials_json"]
+                return st.secrets["credentials_json"]
             else:
-                credentials_info = json.loads(st.secrets["credentials_json"])
+                return json.loads(st.secrets["credentials_json"])
         else:
             credentials_json_str = os.environ.get("CREDENTIALS_JSON")
             if credentials_json_str:
-                credentials_info = json.loads(credentials_json_str)
+                return json.loads(credentials_json_str)
             else:
-                raise ValueError("Google Sheets credentials not found. Make sure 'gcp_service_account' or 'credentials_json' secret is configured.")
-        
-        credentials = Credentials.from_service_account_info(
-            credentials_info,
-            scopes=[
-                "https://www.googleapis.com/auth/spreadsheets",
-                "https://www.googleapis.com/auth/drive",
-            ]
-        )
-        client = gspread.authorize(credentials)
-        sheet = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
-        return sheet
-    except Exception as e:
-        st.error(f"Google Sheets connection error: {str(e)}")
-        raise e
-
-# -------- DATA PROCESSING FUNCTIONS --------
-def get_sheet_data():
-    """Get all data from Google Sheets and convert to DataFrame"""
-    sheet = connect_to_gsheet()
+                raise ValueError("Google Sheets credentials not found")
     
-    all_values = sheet.get_all_values()
-    header_row = all_values[0]
-    data_rows = all_values[1:]
-    
-    last_index = 0
-    for i, row in enumerate(data_rows):
-        if any(row[:6]):
-            last_index = i
-    
-    valid_data_rows = data_rows[:last_index + 1] if data_rows else []
-    
-    if valid_data_rows:
-        df = pd.DataFrame(valid_data_rows, columns=header_row)
-        df = df[df.iloc[:, :6].any(axis=1)]
-        
-        if df.empty:
+    def get_sheet_data(self) -> Optional[pd.DataFrame]:
+        """Get all data from Google Sheets and convert to DataFrame"""
+        try:
+            sheet = self.connect_to_gsheet()
+            all_values = sheet.get_all_values()
+            
+            if not all_values or len(all_values) < 2:
+                return None
+            
+            header_row = all_values[0]
+            data_rows = all_values[1:]
+            
+            # Find last row with data
+            last_index = self._find_last_data_row(data_rows)
+            valid_data_rows = data_rows[:last_index + 1] if data_rows else []
+            
+            if not valid_data_rows:
+                return None
+            
+            df = pd.DataFrame(valid_data_rows, columns=header_row)
+            df = self._clean_dataframe(df)
+            
+            return df if not df.empty else None
+            
+        except Exception as e:
+            st.error(f"Error fetching data: {str(e)}")
             return None
-        
+    
+    def _find_last_data_row(self, data_rows: list) -> int:
+        """Find the last row containing data"""
+        last_index = 0
+        for i, row in enumerate(data_rows):
+            if any(row[:6]):  # Check first 6 columns for data
+                last_index = i
+        return last_index
+    
+    def _clean_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Clean and process the DataFrame"""
+        # Remove empty rows
+        df = df[df.iloc[:, :6].any(axis=1)]
         df.columns = df.columns.str.strip()
         
-        # Column mapping
+        # Map columns
+        df = self._map_columns(df)
+        
+        # Process numeric columns
+        df = self._process_numeric_columns(df)
+        
+        # Process winrate
+        df = self._process_winrate(df)
+        
+        # Process dates
+        df = self._process_dates(df)
+        
+        # Sort by date if available
+        if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
+            df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
+            df = df.sort_values('Date_parsed')
+        
+        return df
+    
+    def _map_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Map column names to standard format"""
         column_mapping = {}
         for col in df.columns:
             col_lower = col.lower().strip()
@@ -280,661 +298,685 @@ def get_sheet_data():
             elif any(keyword in col_lower for keyword in ['winrate', 'win_rate', 'win rate']):
                 column_mapping['Winrate_pct'] = col
         
-        df = df.rename(columns=column_mapping)
-        
-        # Process numeric columns
+        return df.rename(columns=column_mapping)
+    
+    def _process_numeric_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Process numeric columns"""
         numeric_columns = ['Total_Signal', 'Finished', 'TP', 'SL']
         for col in numeric_columns:
             if col in df.columns:
                 df[col] = df[col].astype(str).str.replace(r'[^\d]', '', regex=True)
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
-        
-        # Process winrate column
+        return df
+    
+    def _process_winrate(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Process winrate column"""
         if 'Winrate_pct' in df.columns:
             df['Winrate_num'] = df['Winrate_pct'].astype(str).str.replace('%', '').str.strip()
             df['Winrate_num'] = pd.to_numeric(df['Winrate_num'], errors='coerce').fillna(0)
+        return df
+    
+    def _process_dates(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Process date column"""
+        if 'Date' not in df.columns:
+            return df
         
-        # Process date column
-        if 'Date' in df.columns:
-            df['Date_parsed'] = None
-            df['Date_display'] = df['Date'].astype(str)
+        df['Date_parsed'] = None
+        df['Date_display'] = df['Date'].astype(str)
+        
+        for idx, date_str in enumerate(df['Date']):
+            if pd.isna(date_str) or date_str == '' or str(date_str).strip() == '':
+                continue
             
-            for idx, date_str in enumerate(df['Date']):
-                if pd.isna(date_str) or date_str == '' or str(date_str).strip() == '':
-                    continue
-                
-                date_str = str(date_str).strip()
-                
-                # Handle date ranges
-                range_pattern = re.search(r'(\d{2})/(\d{2})-(\d{2})/(\d{2})', date_str)
-                if range_pattern:
-                    start_month, start_day, end_month, end_day = range_pattern.groups()
-                    try:
-                        current_year = datetime.datetime.now().year
-                        end_date = pd.to_datetime(f"{current_year}-{end_month}-{end_day}", format='%Y-%m-%d')
-                        df.at[idx, 'Date_parsed'] = end_date
-                        df.at[idx, 'Date_display'] = f"2025-{end_month}-{end_day}"
-                        continue
-                    except:
-                        pass
-                
-                # Handle simple date formats
-                date_patterns = [
-                    r'(\d{4})-(\d{1,2})-(\d{1,2})',
-                    r'(\d{1,2})/(\d{1,2})/(\d{4})',
-                    r'(\d{1,2})-(\d{1,2})-(\d{4})',
-                ]
-                
-                parsed = False
-                for pattern in date_patterns:
-                    match = re.search(pattern, date_str)
-                    if match:
-                        try:
-                            if pattern == date_patterns[0]:
-                                year, month, day = match.groups()
-                            else:
-                                month, day, year = match.groups()
-                            
-                            parsed_date = pd.to_datetime(f"{year}-{month}-{day}", format='%Y-%m-%d')
-                            df.at[idx, 'Date_parsed'] = parsed_date
-                            df.at[idx, 'Date_display'] = parsed_date.strftime('%Y-%m-%d')
-                            parsed = True
-                            break
-                        except:
-                            continue
-                
-                if not parsed:
-                    try:
-                        parsed_date = pd.to_datetime(date_str, errors='coerce')
-                        if not pd.isna(parsed_date):
-                            df.at[idx, 'Date_parsed'] = parsed_date
-                            df.at[idx, 'Date_display'] = parsed_date.strftime('%Y-%m-%d')
-                    except:
-                        base_date = datetime.datetime.now() - pd.Timedelta(days=len(df)-idx-1)
-                        df.at[idx, 'Date_parsed'] = base_date
-                        df.at[idx, 'Date_display'] = base_date.strftime('%Y-%m-%d')
-        
-        if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
-            df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
-            df = df.sort_values('Date_parsed')
+            parsed_date = self._parse_date_string(str(date_str).strip(), idx, len(df))
+            if parsed_date:
+                df.at[idx, 'Date_parsed'] = parsed_date
+                df.at[idx, 'Date_display'] = parsed_date.strftime('%Y-%m-%d')
         
         return df
-    else:
-        return None
+    
+    def _parse_date_string(self, date_str: str, idx: int, total_rows: int) -> Optional[datetime.datetime]:
+        """Parse individual date string"""
+        # Handle date ranges
+        range_pattern = re.search(r'(\d{2})/(\d{2})-(\d{2})/(\d{2})', date_str)
+        if range_pattern:
+            start_month, start_day, end_month, end_day = range_pattern.groups()
+            try:
+                current_year = datetime.datetime.now().year
+                return pd.to_datetime(f"{current_year}-{end_month}-{end_day}", format='%Y-%m-%d')
+            except:
+                pass
+        
+        # Handle standard date formats
+        date_patterns = [
+            r'(\d{4})-(\d{1,2})-(\d{1,2})',
+            r'(\d{1,2})/(\d{1,2})/(\d{4})',
+            r'(\d{1,2})-(\d{1,2})-(\d{4})',
+        ]
+        
+        for pattern in date_patterns:
+            match = re.search(pattern, date_str)
+            if match:
+                try:
+                    if pattern == date_patterns[0]:
+                        year, month, day = match.groups()
+                    else:
+                        month, day, year = match.groups()
+                    
+                    return pd.to_datetime(f"{year}-{month}-{day}", format='%Y-%m-%d')
+                except:
+                    continue
+        
+        # Try pandas parsing
+        try:
+            parsed_date = pd.to_datetime(date_str, errors='coerce')
+            if not pd.isna(parsed_date):
+                return parsed_date
+        except:
+            pass
+        
+        # Default fallback
+        base_date = datetime.datetime.now() - pd.Timedelta(days=total_rows-idx-1)
+        return base_date
 
-def filter_data_by_period(df, period):
-    """Filter DataFrame by selected time period"""
-    if df is None or df.empty:
-        return None
-    
-    today = datetime.datetime.now()
-    
-    if 'Date_parsed' not in df.columns or df['Date_parsed'].isna().all():
-        total_rows = len(df)
+# ==================== ANALYTICS ENGINE ====================
+class AnalyticsEngine:
+    @staticmethod
+    def filter_data_by_period(df: Optional[pd.DataFrame], period: str) -> Optional[pd.DataFrame]:
+        """Filter DataFrame by selected time period"""
+        if df is None or df.empty:
+            return None
+        
+        today = datetime.datetime.now()
+        
+        if 'Date_parsed' not in df.columns or df['Date_parsed'].isna().all():
+            total_rows = len(df)
+            
+            if period == 'week':
+                rows_to_keep = min(7, total_rows)
+                return df.iloc[-rows_to_keep:]
+            elif period == 'month':
+                rows_to_keep = min(30, total_rows)
+                return df.iloc[-rows_to_keep:]
+            else:
+                return df
         
         if period == 'week':
-            rows_to_keep = min(7, total_rows)
-            return df.iloc[-rows_to_keep:]
+            start_date = today - datetime.timedelta(days=7)
+            filtered_df = df[df['Date_parsed'] >= start_date]
+            return filtered_df if not filtered_df.empty else df.tail(7)
         elif period == 'month':
-            rows_to_keep = min(30, total_rows)
-            return df.iloc[-rows_to_keep:]
+            start_date = today - datetime.timedelta(days=30)
+            filtered_df = df[df['Date_parsed'] >= start_date]
+            return filtered_df if not filtered_df.empty else df.tail(30)
         else:
             return df
     
-    if period == 'week':
-        start_date = today - datetime.timedelta(days=7)
-        filtered_df = df[df['Date_parsed'] >= start_date]
-        if filtered_df.empty:
-            return df.tail(7)
-        return filtered_df
-    elif period == 'month':
-        start_date = today - datetime.timedelta(days=30)
-        filtered_df = df[df['Date_parsed'] >= start_date]
-        if filtered_df.empty:
-            return df.tail(30)
-        return filtered_df
-    else:
-        return df
-
-def calculate_statistics(df):
-    """Calculate trading statistics from DataFrame"""
-    if df is None or df.empty:
-        return None
-    
-    tp_col = 'TP' if 'TP' in df.columns else None
-    sl_col = 'SL' if 'SL' in df.columns else None
-    total_signal_col = 'Total_Signal' if 'Total_Signal' in df.columns else None
-    finished_col = 'Finished' if 'Finished' in df.columns else None
-    
-    if not tp_col or not sl_col:
-        return None
-    
-    tp_data = pd.to_numeric(df[tp_col], errors='coerce').fillna(0)
-    sl_data = pd.to_numeric(df[sl_col], errors='coerce').fillna(0)
-    
-    stats = {
-        'total_tp': int(tp_data.sum()),
-        'total_sl': int(sl_data.sum()),
-    }
-    
-    if stats['total_tp'] + stats['total_sl'] > 0:
-        stats['overall_winrate'] = 100 * stats['total_tp'] / (stats['total_tp'] + stats['total_sl'])
-    else:
-        stats['overall_winrate'] = 0
-    
-    if total_signal_col:
-        total_signals = pd.to_numeric(df[total_signal_col], errors='coerce').fillna(0).sum()
-        stats['total_signals'] = int(total_signals)
+    @staticmethod
+    def calculate_statistics(df: Optional[pd.DataFrame]) -> Optional[Dict[str, Any]]:
+        """Calculate trading statistics from DataFrame"""
+        if df is None or df.empty:
+            return None
         
-        if total_signals > 0:
-            finished_total = stats['total_tp'] + stats['total_sl']
-            stats['completion_rate'] = 100 * finished_total / total_signals
+        # Check required columns
+        if 'TP' not in df.columns or 'SL' not in df.columns:
+            return None
+        
+        tp_data = pd.to_numeric(df['TP'], errors='coerce').fillna(0)
+        sl_data = pd.to_numeric(df['SL'], errors='coerce').fillna(0)
+        
+        stats = {
+            'total_tp': int(tp_data.sum()),
+            'total_sl': int(sl_data.sum()),
+        }
+        
+        # Calculate winrate
+        if stats['total_tp'] + stats['total_sl'] > 0:
+            stats['overall_winrate'] = 100 * stats['total_tp'] / (stats['total_tp'] + stats['total_sl'])
         else:
-            stats['completion_rate'] = 0
-    elif finished_col:
-        finished = pd.to_numeric(df[finished_col], errors='coerce').fillna(0).sum()
-        stats['total_signals'] = int(finished)
-        stats['completion_rate'] = 100
-    else:
-        stats['total_signals'] = int(stats['total_tp'] + stats['total_sl'])
-        stats['completion_rate'] = 100
-    
-    return stats
+            stats['overall_winrate'] = 0
+        
+        # Calculate total signals and completion rate
+        if 'Total_Signal' in df.columns:
+            total_signals = pd.to_numeric(df['Total_Signal'], errors='coerce').fillna(0).sum()
+            stats['total_signals'] = int(total_signals)
+            
+            if total_signals > 0:
+                finished_total = stats['total_tp'] + stats['total_sl']
+                stats['completion_rate'] = 100 * finished_total / total_signals
+            else:
+                stats['completion_rate'] = 0
+        else:
+            stats['total_signals'] = int(stats['total_tp'] + stats['total_sl'])
+            stats['completion_rate'] = 100
+        
+        return stats
 
-# -------- VISUALIZATION FUNCTIONS --------
-def create_winrate_chart(df):
-    """Create an enhanced winrate chart with Plotly"""
-    if df is None or df.empty or 'Winrate_num' not in df.columns:
-        return None
-    
-    if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
-        df = df.copy()
-        df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
-        df = df.sort_values('Date_parsed')
-    
-    fig = go.Figure()
-    
-    # Add winrate line with yellow color
-    fig.add_trace(go.Scatter(
-        x=df['Date_display'],
-        y=df['Winrate_num'],
-        mode='lines+markers',
-        name='Winrate',
-        line=dict(color='#FFD700', width=4),
-        marker=dict(size=10, color='#FFD700', line=dict(width=3, color='#000000')),
-        hovertemplate='<b>Date:</b> %{x}<br><b>Winrate:</b> %{y}%<extra></extra>'
-    ))
-    
-    # Add average line
-    avg_winrate = df['Winrate_num'].mean()
-    fig.add_hline(y=avg_winrate, line_dash="dash", line_color="#FFD700", line_width=2,
-                  annotation_text=f"Average: {avg_winrate:.1f}%", 
-                  annotation_font_color="#FFD700", annotation_font_size=14)
-    
-    # Add 70% benchmark line
-    fig.add_hline(y=70, line_dash="dot", line_color="#FFFF00", line_width=2,
-                  annotation_text="Target: 70%", 
-                  annotation_font_color="#FFFF00", annotation_font_size=12)
-    
-    fig.update_layout(
-        title=dict(text="Winrate Trend", font=dict(size=18, color='#FFD700')),
-        xaxis_title=dict(text="Date", font=dict(color='#FFD700')),
-        yaxis_title=dict(text="Winrate (%)", font=dict(color='#FFD700')),
-        plot_bgcolor='#000000',
-        paper_bgcolor='#000000',
-        font=dict(color='#FFD700', size=12),
-        height=350,
-        showlegend=False,
-        yaxis=dict(
-            range=[0, 100], 
-            gridcolor='#333333',
-            tickfont=dict(color='#FFD700', size=11),
-            dtick=10
-        ),
-        xaxis=dict(
-            gridcolor='#333333',
-            tickfont=dict(color='#FFD700', size=11)
-        ),
-        margin=dict(l=60, r=60, t=60, b=60)
-    )
-    
-    return fig
-
-def create_tpsl_chart(df):
-    """Create an enhanced TP/SL comparison chart"""
-    if df is None or df.empty or 'TP' not in df.columns or 'SL' not in df.columns:
-        return None
-    
-    if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
-        df = df.copy()
-        df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
-        df = df.sort_values('Date_parsed')
-    
-    fig = go.Figure()
-    
-    # Add TP bars with yellow color
-    fig.add_trace(go.Bar(
-        x=df['Date_display'],
-        y=df['TP'],
-        name='Take Profit',
-        marker_color='#FFD700',
-        hovertemplate='<b>Date:</b> %{x}<br><b>TP:</b> %{y}<extra></extra>',
-        opacity=0.9
-    ))
-    
-    # Add SL bars with darker yellow
-    fig.add_trace(go.Bar(
-        x=df['Date_display'],
-        y=df['SL'],
-        name='Stop Loss',
-        marker_color='#B8860B',  # Dark goldenrod
-        hovertemplate='<b>Date:</b> %{x}<br><b>SL:</b> %{y}<extra></extra>',
-        opacity=0.9
-    ))
-    
-    fig.update_layout(
-        title=dict(text="TP vs SL", font=dict(size=18, color='#FFD700')),
-        xaxis_title=dict(text="Date", font=dict(color='#FFD700')),
-        yaxis_title=dict(text="Count", font=dict(color='#FFD700')),
-        plot_bgcolor='#000000',
-        paper_bgcolor='#000000',
-        font=dict(color='#FFD700', size=12),
-        height=350,
-        barmode='group',
-        legend=dict(
-            x=0, y=1,
-            font=dict(color='#FFD700', size=12),
-            bgcolor='#000000'
-        ),
-        yaxis=dict(
-            gridcolor='#333333',
-            tickfont=dict(color='#FFD700', size=11)
-        ),
-        xaxis=dict(
-            gridcolor='#333333',
-            tickfont=dict(color='#FFD700', size=11)
-        ),
-        margin=dict(l=60, r=60, t=60, b=60)
-    )
-    
-    return fig
-
-def create_combined_dashboard_chart(df):
-    """Create a combined chart with multiple metrics"""
-    if df is None or df.empty:
-        return None
-    
-    # Create subplots with better styling
-    fig = make_subplots(
-        rows=2, cols=2,
-        subplot_titles=('Winrate Trend', 'TP vs SL', 'Cumulative Performance', 'Daily Signals'),
-        specs=[[{"secondary_y": False}, {"secondary_y": False}],
-               [{"secondary_y": False}, {"secondary_y": False}]],
-        vertical_spacing=0.12,
-        horizontal_spacing=0.1
-    )
-    
-    if 'Winrate_num' in df.columns:
-        # Winrate trend with yellow colors
-        fig.add_trace(
-            go.Scatter(x=df['Date_display'], y=df['Winrate_num'], 
-                      mode='lines+markers', name='Winrate',
-                      line=dict(color='#FFD700', width=3),
-                      marker=dict(size=6, color='#FFD700')),
-            row=1, col=1
+# ==================== CHART BUILDER ====================
+class ChartBuilder:
+    @staticmethod
+    def create_winrate_chart(df: Optional[pd.DataFrame]) -> Optional[go.Figure]:
+        """Create an enhanced winrate chart"""
+        if df is None or df.empty or 'Winrate_num' not in df.columns:
+            return None
+        
+        if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
+            df = df.copy()
+            df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
+            df = df.sort_values('Date_parsed')
+        
+        fig = go.Figure()
+        
+        # Add winrate line
+        fig.add_trace(go.Scatter(
+            x=df['Date_display'],
+            y=df['Winrate_num'],
+            mode='lines+markers',
+            name='Winrate',
+            line=dict(color=Config.COLORS['primary'], width=4),
+            marker=dict(size=10, color=Config.COLORS['primary'], 
+                       line=dict(width=3, color=Config.COLORS['background'])),
+            hovertemplate='<b>Date:</b> %{x}<br><b>Winrate:</b> %{y}%<extra></extra>'
+        ))
+        
+        # Add average line
+        avg_winrate = df['Winrate_num'].mean()
+        fig.add_hline(y=avg_winrate, line_dash="dash", line_color=Config.COLORS['primary'], 
+                      line_width=2, annotation_text=f"Average: {avg_winrate:.1f}%", 
+                      annotation_font_color=Config.COLORS['primary'], annotation_font_size=14)
+        
+        # Add target line
+        fig.add_hline(y=70, line_dash="dot", line_color="#FCD535", line_width=2,
+                      annotation_text="Target: 70%", 
+                      annotation_font_color="#FCD535", annotation_font_size=12)
+        
+        fig.update_layout(
+            title=dict(text="Winrate Trend", font=dict(size=18, color=Config.COLORS['primary'])),
+            xaxis_title=dict(text="Date", font=dict(color=Config.COLORS['secondary'])),
+            yaxis_title=dict(text="Winrate (%)", font=dict(color=Config.COLORS['secondary'])),
+            plot_bgcolor=Config.COLORS['background'],
+            paper_bgcolor=Config.COLORS['background'],
+            font=dict(color=Config.COLORS['secondary'], size=12),
+            height=350,
+            showlegend=False,
+            yaxis=dict(range=[0, 100], gridcolor=Config.COLORS['grid'], 
+                      tickfont=dict(color='#B7BDC6', size=11), dtick=10),
+            xaxis=dict(gridcolor=Config.COLORS['grid'], 
+                      tickfont=dict(color='#B7BDC6', size=11)),
+            margin=dict(l=60, r=60, t=60, b=60)
         )
         
-        # Set y-axis range for winrate to 0-100
-        fig.update_yaxes(range=[0, 100], row=1, col=1)
+        return fig
     
-    if 'TP' in df.columns and 'SL' in df.columns:
-        # TP vs SL with yellow and white
-        fig.add_trace(
-            go.Bar(x=df['Date_display'], y=df['TP'], name='TP', 
-                   marker_color='#FFD700', opacity=0.9),
-            row=1, col=2
-        )
-        fig.add_trace(
-            go.Bar(x=df['Date_display'], y=df['SL'], name='SL',
-                   marker_color='#FFFFFF', opacity=0.9),
-            row=1, col=2
+    @staticmethod
+    def create_tpsl_chart(df: Optional[pd.DataFrame]) -> Optional[go.Figure]:
+        """Create TP/SL comparison chart"""
+        if df is None or df.empty or 'TP' not in df.columns or 'SL' not in df.columns:
+            return None
+        
+        if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
+            df = df.copy()
+            df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
+            df = df.sort_values('Date_parsed')
+        
+        fig = go.Figure()
+        
+        # Add TP bars
+        fig.add_trace(go.Bar(
+            x=df['Date_display'], y=df['TP'], name='Take Profit',
+            marker_color=Config.COLORS['primary'],
+            hovertemplate='<b>Date:</b> %{x}<br><b>TP:</b> %{y}<extra></extra>',
+            opacity=0.9
+        ))
+        
+        # Add SL bars
+        fig.add_trace(go.Bar(
+            x=df['Date_display'], y=df['SL'], name='Stop Loss',
+            marker_color=Config.COLORS['dark_gold'],
+            hovertemplate='<b>Date:</b> %{x}<br><b>SL:</b> %{y}<extra></extra>',
+            opacity=0.9
+        ))
+        
+        fig.update_layout(
+            title=dict(text="TP vs SL", font=dict(size=18, color=Config.COLORS['primary'])),
+            xaxis_title=dict(text="Date", font=dict(color=Config.COLORS['primary'])),
+            yaxis_title=dict(text="Count", font=dict(color=Config.COLORS['primary'])),
+            plot_bgcolor=Config.COLORS['background'],
+            paper_bgcolor=Config.COLORS['background'],
+            font=dict(color=Config.COLORS['primary'], size=12),
+            height=350, barmode='group',
+            legend=dict(x=0, y=1, font=dict(color=Config.COLORS['primary'], size=12),
+                       bgcolor=Config.COLORS['background']),
+            yaxis=dict(gridcolor=Config.COLORS['grid'], 
+                      tickfont=dict(color=Config.COLORS['primary'], size=11)),
+            xaxis=dict(gridcolor=Config.COLORS['grid'], 
+                      tickfont=dict(color=Config.COLORS['primary'], size=11)),
+            margin=dict(l=60, r=60, t=60, b=60)
         )
         
-        # Cumulative performance with yellow and white
-        cumulative_tp = df['TP'].cumsum()
-        cumulative_sl = df['SL'].cumsum()
-        fig.add_trace(
-            go.Scatter(x=df['Date_display'], y=cumulative_tp, 
-                      mode='lines', name='Cumulative TP',
-                      line=dict(color='#FFD700', width=3)),
-            row=2, col=1
+        return fig
+    
+    @staticmethod
+    def create_combined_dashboard_chart(df: Optional[pd.DataFrame]) -> Optional[go.Figure]:
+        """Create combined dashboard chart"""
+        if df is None or df.empty:
+            return None
+        
+        # Create subplots
+        fig = make_subplots(
+            rows=2, cols=2,
+            subplot_titles=('Winrate Trend', 'TP vs SL', 'Cumulative Performance', 'Daily Signals'),
+            specs=[[{"secondary_y": False}, {"secondary_y": False}],
+                   [{"secondary_y": False}, {"secondary_y": False}]],
+            vertical_spacing=0.12, horizontal_spacing=0.1
         )
-        fig.add_trace(
-            go.Scatter(x=df['Date_display'], y=cumulative_sl,
-                      mode='lines', name='Cumulative SL',
-                      line=dict(color='#FFFFFF', width=3)),
-            row=2, col=1
+        
+        # Winrate trend
+        if 'Winrate_num' in df.columns:
+            fig.add_trace(
+                go.Scatter(x=df['Date_display'], y=df['Winrate_num'], 
+                          mode='lines+markers', name='Winrate',
+                          line=dict(color=Config.COLORS['primary'], width=3),
+                          marker=dict(size=6, color=Config.COLORS['primary'])),
+                row=1, col=1
+            )
+            fig.update_yaxes(range=[0, 100], row=1, col=1)
+        
+        # TP vs SL
+        if 'TP' in df.columns and 'SL' in df.columns:
+            fig.add_trace(
+                go.Bar(x=df['Date_display'], y=df['TP'], name='TP', 
+                       marker_color=Config.COLORS['primary'], opacity=0.9),
+                row=1, col=2
+            )
+            fig.add_trace(
+                go.Bar(x=df['Date_display'], y=df['SL'], name='SL',
+                       marker_color=Config.COLORS['secondary'], opacity=0.9),
+                row=1, col=2
+            )
+            
+            # Cumulative performance
+            cumulative_tp = df['TP'].cumsum()
+            cumulative_sl = df['SL'].cumsum()
+            fig.add_trace(
+                go.Scatter(x=df['Date_display'], y=cumulative_tp, 
+                          mode='lines', name='Cumulative TP',
+                          line=dict(color=Config.COLORS['primary'], width=3)),
+                row=2, col=1
+            )
+            fig.add_trace(
+                go.Scatter(x=df['Date_display'], y=cumulative_sl,
+                          mode='lines', name='Cumulative SL',
+                          line=dict(color=Config.COLORS['secondary'], width=3)),
+                row=2, col=1
+            )
+        
+        # Daily signals
+        if 'Total_Signal' in df.columns:
+            fig.add_trace(
+                go.Bar(x=df['Date_display'], y=df['Total_Signal'], 
+                       name='Daily Signals', marker_color=Config.COLORS['primary'], opacity=0.9),
+                row=2, col=2
+            )
+        
+        # Update layout
+        fig.update_layout(
+            height=700,
+            plot_bgcolor=Config.COLORS['background'],
+            paper_bgcolor=Config.COLORS['background'],
+            font=dict(color=Config.COLORS['primary'], size=12),
+            title_text="LuxQuant VIP Trading Dashboard",
+            title_font=dict(size=20, color=Config.COLORS['primary']),
+            showlegend=True,
+            legend=dict(font=dict(color=Config.COLORS['secondary']),
+                       bgcolor=Config.COLORS['background'])
         )
-    
-    if 'Total_Signal' in df.columns:
-        # Daily signals with yellow color
-        fig.add_trace(
-            go.Bar(x=df['Date_display'], y=df['Total_Signal'], 
-                   name='Daily Signals', marker_color='#FFD700', opacity=0.9),
-            row=2, col=2
-        )
-    
-    # Update layout with black and yellow theme
-    fig.update_layout(
-        height=700,
-        plot_bgcolor='#000000',
-        paper_bgcolor='#000000',
-        font=dict(color='#FFD700', size=12),
-        title_text="LuxQuant VIP Trading Dashboard",
-        title_font=dict(size=20, color='#FFD700'),
-        showlegend=True,
-        legend=dict(
-            font=dict(color='#FFFFFF'),
-            bgcolor='#000000'
-        )
-    )
-    
-    # Update all subplot titles to yellow
-    for i in fig['layout']['annotations']:
-        i['font'] = dict(color='#FFD700', size=14)
-    
-    # Update axes styling
-    fig.update_xaxes(
-        gridcolor='#333333',
-        tickfont=dict(color='#FFD700', size=10)
-    )
-    fig.update_yaxes(
-        gridcolor='#333333',
-        tickfont=dict(color='#FFD700', size=10)
-    )
-    
-    return fig
+        
+        # Update subplot titles
+        for i in fig['layout']['annotations']:
+            i['font'] = dict(color=Config.COLORS['primary'], size=14)
+        
+        # Update axes
+        fig.update_xaxes(gridcolor=Config.COLORS['grid'],
+                        tickfont=dict(color=Config.COLORS['primary'], size=10))
+        fig.update_yaxes(gridcolor=Config.COLORS['grid'],
+                        tickfont=dict(color=Config.COLORS['primary'], size=10))
+        
+        return fig
 
-# -------- MAIN APP --------
-def main():
-    st.set_page_config(
-        page_title="LuxQuant VIP | Trading Dashboard",
-        page_icon="📊",
-        layout="wide",
-        initial_sidebar_state="expanded",
-    )
+# ==================== UI COMPONENTS ====================
+class UIComponents:
+    @staticmethod
+    def render_header():
+        """Render main header"""
+        st.markdown("""
+        <div class="main-header">
+            <div class="main-title">LuxQuant VIP | 智汇尊享会</div>
+            <div class="subtitle">Tools for Automated Crypto Trading Setup 24/7</div>
+            <div class="subtitle">Help traders identify market opportunities without having to monitor charts continuously.</div>
+            <div class="accuracy-badge">⚡ 24/7 Automated Signals ⚡</div>
+            <div class="accuracy-badge" style="margin-top: 0.5rem;">Historical Accuracy of 87.9% (No Future Guarantee)</div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    # Apply custom styling
-    apply_custom_css()
-    
-    # Main header
-    st.markdown("""
-    <div class="main-header">
-        <div class="main-title">LuxQuant VIP | 智汇尊享会</div>
-        <div class="subtitle">Tools for Automated Crypto Trading Setup 24/7</div>
-        <div class="subtitle">Help traders identify market opportunities without having to monitor charts continuously.</div>
-        <div class="accuracy-badge">⚡ 24/7 Automated Signals ⚡</div>
-        <div class="accuracy-badge" style="margin-top: 0.5rem;">Historical Accuracy of 87.9% (No Future Guarantee)</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Period selector
-    st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin-bottom: 1rem; text-align: center;">📊 Trading Performance Analysis</h3>', unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # Create centered layout for period selector and button
-    col1, col2, col3 = st.columns([1, 2, 1])
-    
-    with col2:
-        # Period selector with better styling
-        st.markdown('<div style="text-align: center; margin-bottom: 1.5rem;">', unsafe_allow_html=True)
-        st.markdown('<p style="color: #FFFFFF; font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem;">Select Time Period:</p>', unsafe_allow_html=True)
+    @staticmethod
+    def render_period_selector():
+        """Render period selector"""
+        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin-bottom: 1rem; text-align: center;">📊 Trading Performance Analysis</h3>', unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
         
-        period = st.radio(
-            "",
-            options=["week", "month", "all"],
-            format_func=lambda x: {"week": "📅 Last Week", "month": "📆 Last Month", "all": "📈 All Time"}[x],
-            horizontal=True,
-            key="period_selector"
+        col1, col2, col3 = st.columns([1, 2, 1])
+        
+        with col2:
+            st.markdown('<div style="text-align: center; margin-bottom: 1.5rem;">', unsafe_allow_html=True)
+            st.markdown('<p style="color: #FFFFFF; font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem;">Select Time Period:</p>', unsafe_allow_html=True)
+            
+            period = st.radio(
+                "",
+                options=["week", "month", "all"],
+                format_func=lambda x: {"week": "📅 Last Week", "month": "📆 Last Month", "all": "📈 All Time"}[x],
+                horizontal=True,
+                key="period_selector"
+            )
+            
+            st.markdown('<div style="margin-top: 1.5rem;"></div>', unsafe_allow_html=True)
+            load_button = st.button("🚀 LOAD TRADING STATISTICS", use_container_width=True, type="primary")
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        return period, load_button
+    
+    @staticmethod
+    def render_stats_cards(stats: Dict[str, Any]):
+        """Render statistics cards"""
+        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin-bottom: 1.5rem;">📈 Key Performance Metrics</h3>', unsafe_allow_html=True)
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value">{stats['overall_winrate']:.1f}%</div>
+                <div class="stat-label">Historical System<br>Accuracy (Win-Rate)</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-value">{stats['total_signals']:,}</div>
+                <div class="stat-label">Total System<br>Output</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value">{stats['total_tp']:,}</div>
+                <div class="stat-label">Take Profit<br>Signals</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col4:
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value">8,562</div>
+                <div class="stat-label">Global<br>Users</div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    @staticmethod
+    def render_insights(stats: Dict[str, Any], filtered_df: pd.DataFrame):
+        """Render trading insights"""
+        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">💡 Trading Insights</h3>', unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            # Performance assessment
+            if stats['overall_winrate'] >= 70:
+                insight_color = Config.COLORS['success']
+                insight_icon = "🟢"
+                insight_text = "Excellent Performance"
+            elif stats['overall_winrate'] >= 60:
+                insight_color = Config.COLORS['warning']
+                insight_icon = "🟡"
+                insight_text = "Good Performance"
+            else:
+                insight_color = Config.COLORS['error']
+                insight_icon = "🔴"
+                insight_text = "Needs Improvement"
+            
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-icon">{insight_icon}</div>
+                <div class="stat-label" style="color: {insight_color};">{insight_text}</div>
+                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                    Winrate: {stats['overall_winrate']:.1f}%
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            # Trend analysis
+            if len(filtered_df) >= 3 and 'Winrate_num' in filtered_df.columns:
+                recent_avg = filtered_df['Winrate_num'].tail(3).mean()
+                overall_avg = filtered_df['Winrate_num'].mean()
+                
+                if recent_avg > overall_avg:
+                    trend_icon = "📈"
+                    trend_text = "Improving Trend"
+                    trend_color = Config.COLORS['success']
+                else:
+                    trend_icon = "📉"
+                    trend_text = "Declining Trend"
+                    trend_color = Config.COLORS['error']
+            else:
+                trend_icon = "📊"
+                trend_text = "Stable Performance"
+                trend_color = "#2196F3"
+            
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-icon">{trend_icon}</div>
+                <div class="stat-label" style="color: {trend_color};">{trend_text}</div>
+                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                    Recent Performance Analysis
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            # Risk assessment
+            if stats['total_sl'] > 0:
+                risk_ratio = stats['total_tp'] / stats['total_sl']
+                if risk_ratio >= 2:
+                    risk_icon = "🟢"
+                    risk_text = "Low Risk"
+                    risk_color = Config.COLORS['success']
+                elif risk_ratio >= 1:
+                    risk_icon = "🟡"
+                    risk_text = "Medium Risk"
+                    risk_color = Config.COLORS['warning']
+                else:
+                    risk_icon = "🔴"
+                    risk_text = "High Risk"
+                    risk_color = Config.COLORS['error']
+            else:
+                risk_icon = "🟢"
+                risk_text = "Low Risk"
+                risk_color = Config.COLORS['success']
+            
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-icon">{risk_icon}</div>
+                <div class="stat-label" style="color: {risk_color};">{risk_text}</div>
+                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                    TP/SL Ratio: {stats['total_tp']}/{stats['total_sl']}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    @staticmethod
+    def render_action_buttons():
+        """Render action buttons"""
+        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">🚀 Take Action</h3>', unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button("📊 SUBSCRIBE NOW", use_container_width=True):
+                st.success("🎉 Redirecting to subscription page...")
+        
+        with col2:
+            if st.button("📦 VIEW PACKAGES", use_container_width=True):
+                st.info("📋 Displaying available packages...")
+        
+        with col3:
+            if st.button("📞 CONTACT SUPPORT", use_container_width=True):
+                st.info("💬 Connecting to support team...")
+    
+    @staticmethod
+    def render_footer():
+        """Render footer"""
+        st.markdown("---")
+        st.markdown("""
+        <div style='text-align: center; padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%); backdrop-filter: blur(10px); border-radius: 15px; margin-top: 2rem;'>
+            <h3 style='color: #FFD700; margin-bottom: 1rem;'>Ready to Start Automated Trading?</h3>
+            <p style='color: #B0B0B0; margin-bottom: 1.5rem;'>Join thousands of traders using LuxQuant VIP for automated crypto trading signals.</p>
+            <p style='color: #888; font-size: 0.9rem;'>Made with ❤️ by LuxQuant VIP | 智汇尊享会 | Historical accuracy does not guarantee future results</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+# ==================== MAIN APPLICATION ====================
+class LuxQuantDashboard:
+    def __init__(self):
+        self.data_manager = DataManager()
+        self.analytics = AnalyticsEngine()
+        self.chart_builder = ChartBuilder()
+        self.ui = UIComponents()
+    
+    def configure_page(self):
+        """Configure Streamlit page"""
+        st.set_page_config(
+            page_title="LuxQuant VIP | Trading Dashboard",
+            page_icon="📊",
+            layout="wide",
+            initial_sidebar_state="expanded",
         )
-        
-        st.markdown('<div style="margin-top: 1.5rem;"></div>', unsafe_allow_html=True)
-        load_button = st.button("🚀 LOAD TRADING STATISTICS", use_container_width=True, type="primary")
-        st.markdown('</div>', unsafe_allow_html=True)
     
-    if load_button:
+    def run(self):
+        """Main application runner"""
+        self.configure_page()
+        StyleManager.apply_custom_css()
+        
+        # Render header
+        self.ui.render_header()
+        
+        # Period selector and load button
+        period, load_button = self.ui.render_period_selector()
+        
+        if load_button:
+            self._handle_data_loading(period)
+        
+        # Action buttons and footer
+        self.ui.render_action_buttons()
+        self.ui.render_footer()
+    
+    def _handle_data_loading(self, period: str):
+        """Handle data loading and display"""
         with st.spinner("🔄 Loading trading data..."):
             try:
-                # Get data
-                df = get_sheet_data()
+                # Get and filter data
+                df = self.data_manager.get_sheet_data()
                 
                 if df is None or df.empty:
                     st.warning("⚠️ No trading data available for the selected period.")
-                else:
-                    # Filter data
-                    filtered_df = filter_data_by_period(df, period)
-                    
-                    if filtered_df is None or filtered_df.empty:
-                        st.warning("⚠️ No data available for the selected period.")
-                    else:
-                        st.success("✅ Trading data loaded successfully!")
-                        
-                        # Calculate statistics
-                        stats = calculate_statistics(filtered_df)
-                        
-                        if stats:
-                            # Display main statistics
-                            st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin-bottom: 1.5rem;">📈 Key Performance Metrics</h3>', unsafe_allow_html=True)
-                            
-                            # Create stats cards
-                            col1, col2, col3, col4 = st.columns(4)
-                            
-                            with col1:
-                                st.markdown(f"""
-                                <div class="stat-card">
-                                    <div class="stat-icon">📊</div>
-                                    <div class="stat-value">{stats['overall_winrate']:.1f}%</div>
-                                    <div class="stat-label">Historical System<br>Accuracy (Win-Rate)</div>
-                                </div>
-                                """, unsafe_allow_html=True)
-                            
-                            with col2:
-                                st.markdown(f"""
-                                <div class="stat-card">
-                                    <div class="stat-icon">⚡</div>
-                                    <div class="stat-value">{stats['total_signals']:,}</div>
-                                    <div class="stat-label">Total System<br>Output</div>
-                                </div>
-                                """, unsafe_allow_html=True)
-                            
-                            with col3:
-                                st.markdown(f"""
-                                <div class="stat-card">
-                                    <div class="stat-icon">🎯</div>
-                                    <div class="stat-value">{stats['total_tp']:,}</div>
-                                    <div class="stat-label">Take Profit<br>Signals</div>
-                                </div>
-                                """, unsafe_allow_html=True)
-                            
-                            with col4:
-                                st.markdown(f"""
-                                <div class="stat-card">
-                                    <div class="stat-icon">👥</div>
-                                    <div class="stat-value">8,562</div>
-                                    <div class="stat-label">Global<br>Users</div>
-                                </div>
-                                """, unsafe_allow_html=True)
-                        
-                        # Charts section
-                        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">📊 Performance Analytics</h3>', unsafe_allow_html=True)
-                        
-                        # Combined dashboard
-                        combined_chart = create_combined_dashboard_chart(filtered_df)
-                        if combined_chart:
-                            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-                            st.plotly_chart(combined_chart, use_container_width=True)
-                            st.markdown('</div>', unsafe_allow_html=True)
-                        
-                        # Individual charts
-                        col1, col2 = st.columns(2)
-                        
-                        with col1:
-                            winrate_chart = create_winrate_chart(filtered_df)
-                            if winrate_chart:
-                                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-                                st.plotly_chart(winrate_chart, use_container_width=True)
-                                st.markdown('</div>', unsafe_allow_html=True)
-                        
-                        with col2:
-                            tpsl_chart = create_tpsl_chart(filtered_df)
-                            if tpsl_chart:
-                                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-                                st.plotly_chart(tpsl_chart, use_container_width=True)
-                                st.markdown('</div>', unsafe_allow_html=True)
-                        
-                        # Detailed data table
-                        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">📋 Detailed Trading Records</h3>', unsafe_allow_html=True)
-                        
-                        # Prepare display columns
-                        display_cols = []
-                        available_cols = ['Date', 'Total_Signal', 'Finished', 'TP', 'SL', 'Winrate_pct']
-                        for col in available_cols:
-                            if col in filtered_df.columns:
-                                display_cols.append(col)
-                        
-                        # Display the data table with styling
-                        if display_cols:
-                            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-                            st.dataframe(
-                                filtered_df[display_cols],
-                                use_container_width=True,
-                                height=300
-                            )
-                            st.markdown('</div>', unsafe_allow_html=True)
-                        else:
-                            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-                            st.dataframe(filtered_df, use_container_width=True, height=300)
-                            st.markdown('</div>', unsafe_allow_html=True)
-                        
-                        # Additional insights
-                        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">💡 Trading Insights</h3>', unsafe_allow_html=True)
-                        
-                        col1, col2, col3 = st.columns(3)
-                        
-                        with col1:
-                            if stats['overall_winrate'] >= 70:
-                                insight_color = "#4CAF50"
-                                insight_icon = "🟢"
-                                insight_text = "Excellent Performance"
-                            elif stats['overall_winrate'] >= 60:
-                                insight_color = "#FF9800"
-                                insight_icon = "🟡"
-                                insight_text = "Good Performance"
-                            else:
-                                insight_color = "#F44336"
-                                insight_icon = "🔴"
-                                insight_text = "Needs Improvement"
-                            
-                            st.markdown(f"""
-                            <div class="stat-card">
-                                <div class="stat-icon">{insight_icon}</div>
-                                <div class="stat-label" style="color: {insight_color};">{insight_text}</div>
-                                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
-                                    Winrate: {stats['overall_winrate']:.1f}%
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        
-                        with col2:
-                            # Calculate recent trend
-                            if len(filtered_df) >= 3 and 'Winrate_num' in filtered_df.columns:
-                                recent_avg = filtered_df['Winrate_num'].tail(3).mean()
-                                overall_avg = filtered_df['Winrate_num'].mean()
-                                
-                                if recent_avg > overall_avg:
-                                    trend_icon = "📈"
-                                    trend_text = "Improving Trend"
-                                    trend_color = "#4CAF50"
-                                else:
-                                    trend_icon = "📉"
-                                    trend_text = "Declining Trend"
-                                    trend_color = "#F44336"
-                            else:
-                                trend_icon = "📊"
-                                trend_text = "Stable Performance"
-                                trend_color = "#2196F3"
-                            
-                            st.markdown(f"""
-                            <div class="stat-card">
-                                <div class="stat-icon">{trend_icon}</div>
-                                <div class="stat-label" style="color: {trend_color};">{trend_text}</div>
-                                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
-                                    Recent Performance Analysis
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
-                        
-                        with col3:
-                            # Risk assessment
-                            if stats['total_sl'] > 0:
-                                risk_ratio = stats['total_tp'] / stats['total_sl']
-                                if risk_ratio >= 2:
-                                    risk_icon = "🟢"
-                                    risk_text = "Low Risk"
-                                    risk_color = "#4CAF50"
-                                elif risk_ratio >= 1:
-                                    risk_icon = "🟡"
-                                    risk_text = "Medium Risk"
-                                    risk_color = "#FF9800"
-                                else:
-                                    risk_icon = "🔴"
-                                    risk_text = "High Risk"
-                                    risk_color = "#F44336"
-                            else:
-                                risk_icon = "🟢"
-                                risk_text = "Low Risk"
-                                risk_color = "#4CAF50"
-                            
-                            st.markdown(f"""
-                            <div class="stat-card">
-                                <div class="stat-icon">{risk_icon}</div>
-                                <div class="stat-label" style="color: {risk_color};">{risk_text}</div>
-                                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
-                                    TP/SL Ratio: {stats['total_tp']}/{stats['total_sl']}
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
-            
+                    return
+                
+                filtered_df = self.analytics.filter_data_by_period(df, period)
+                
+                if filtered_df is None or filtered_df.empty:
+                    st.warning("⚠️ No data available for the selected period.")
+                    return
+                
+                st.success("✅ Trading data loaded successfully!")
+                
+                # Calculate and display statistics
+                stats = self.analytics.calculate_statistics(filtered_df)
+                
+                if stats:
+                    self.ui.render_stats_cards(stats)
+                
+                # Render charts
+                self._render_charts(filtered_df)
+                
+                # Render data table
+                self._render_data_table(filtered_df)
+                
+                # Render insights
+                if stats:
+                    self.ui.render_insights(stats, filtered_df)
+                
             except Exception as e:
                 st.error(f"❌ Error loading data: {str(e)}")
                 st.error(f"Debug info: {type(e).__name__}")
     
-    # Action buttons
-    st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">🚀 Take Action</h3>', unsafe_allow_html=True)
+    def _render_charts(self, filtered_df: pd.DataFrame):
+        """Render all charts"""
+        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">📊 Performance Analytics</h3>', unsafe_allow_html=True)
+        
+        # Combined dashboard
+        combined_chart = self.chart_builder.create_combined_dashboard_chart(filtered_df)
+        if combined_chart:
+            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+            st.plotly_chart(combined_chart, use_container_width=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Individual charts
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            winrate_chart = self.chart_builder.create_winrate_chart(filtered_df)
+            if winrate_chart:
+                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                st.plotly_chart(winrate_chart, use_container_width=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+        
+        with col2:
+            tpsl_chart = self.chart_builder.create_tpsl_chart(filtered_df)
+            if tpsl_chart:
+                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                st.plotly_chart(tpsl_chart, use_container_width=True)
+                st.markdown('</div>', unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if st.button("📊 SUBSCRIBE NOW", use_container_width=True):
-            st.success("🎉 Redirecting to subscription page...")
-    
-    with col2:
-        if st.button("📦 VIEW PACKAGES", use_container_width=True):
-            st.info("📋 Displaying available packages...")
-    
-    with col3:
-        if st.button("📞 CONTACT SUPPORT", use_container_width=True):
-            st.info("💬 Connecting to support team...")
-    
-    # Footer
-    st.markdown("---")
-    st.markdown("""
-    <div style='text-align: center; padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%); backdrop-filter: blur(10px); border-radius: 15px; margin-top: 2rem;'>
-        <h3 style='color: #FFD700; margin-bottom: 1rem;'>Ready to Start Automated Trading?</h3>
-        <p style='color: #B0B0B0; margin-bottom: 1.5rem;'>Join thousands of traders using LuxQuant VIP for automated crypto trading signals.</p>
-        <p style='color: #888; font-size: 0.9rem;'>Made with ❤️ by LuxQuant VIP | 智汇尊享会 | Historical accuracy does not guarantee future results</p>
-    </div>
-    """, unsafe_allow_html=True)
+    def _render_data_table(self, filtered_df: pd.DataFrame):
+        """Render detailed data table"""
+        st.markdown('<h3 style="color: #FFD700; font-size: 1.8rem; font-weight: 700; margin: 2rem 0 1.5rem 0;">📋 Detailed Trading Records</h3>', unsafe_allow_html=True)
+        
+        # Prepare display columns
+        display_cols = []
+        available_cols = ['Date', 'Total_Signal', 'Finished', 'TP', 'SL', 'Winrate_pct']
+        for col in available_cols:
+            if col in filtered_df.columns:
+                display_cols.append(col)
+        
+        # Display the data table
+        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+        if display_cols:
+            st.dataframe(filtered_df[display_cols], use_container_width=True, height=300)
+        else:
+            st.dataframe(filtered_df, use_container_width=True, height=300)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ==================== APPLICATION ENTRY POINT ====================
+def main():
+    """Application entry point"""
+    app = LuxQuantDashboard()
+    app.run()
 
 if __name__ == "__main__":
     main()
