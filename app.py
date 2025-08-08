@@ -4,7 +4,9 @@ from google.oauth2.service_account import Credentials
 import json
 import os
 import pandas as pd
-import altair as alt
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import datetime
 import re
 from pathlib import Path
@@ -13,132 +15,165 @@ from pathlib import Path
 SPREADSHEET_ID = "1g3XL1EllHoWV3jhmi7gT3at6MtCNTJBo8DQ1WyWhMEo"
 SHEET_NAME = "Sheet1"
 
-# -------- IMAGE PATH --------
-IMAGE_PATH = "logo.png"
-
-# -------- LANGUAGE SETTINGS --------
-LANGUAGES = {
-    "id": {
-        "page_title": "Trading Statistics | LuxQuant VIP | 智汇尊享会",
-        "main_title": "📊 Statistik Trading LuxQuant VIP | 智汇尊享会",
-        "app_description": "Visualisasi performa trading Anda berdasarkan periode yang dipilih.",
-        "language_selector": "Pilih Bahasa:",
-        "period_selector": "Pilih Periode:",
-        "period_week": "Seminggu Terakhir",
-        "period_month": "Sebulan Terakhir",
-        "period_all": "Semua Data",
-        "load_stats_button": "🔄 Muat Statistik",
-        "error_message": "❌ Error: ",
-        "no_data_message": "Tidak ada data yang tersedia untuk periode ini.",
-        "winrate_chart_title": "### Winrate Berdasarkan Periode",
-        "tpsl_chart_title": "### Perbandingan TP vs SL",
-        "stats_summary_title": "### Ringkasan Statistik",
-        "avg_winrate": "Rata-rata Winrate",
-        "total_tp": "Total TP",
-        "total_sl": "Total SL",
-        "total_signals": "Total Signals",
-        "overall_winrate": "Overall Winrate",
-        "completion_rate": "Completion Rate",
-        "data_table_title": "### Data Detail",
-        "footer": "<div style='text-align: center'>Made with ❤️ by LuxQuant VIP | 智汇尊享会</div>",
-        "date": "Tanggal",
-        "signals": "Sinyal",
-        "finished": "Finished",
-        "tp": "TP",
-        "sl": "SL",
-        "winrate": "Winrate",
-        "comment": "Komentar",
-        "loading_message": "Memuat data...",
-        "data_loaded": "Data berhasil dimuat!",
-        "config_header": "🔧 Konfigurasi",
-        "config_text": """
-        ### Konfigurasi Google Service Account
-        
-        Untuk konfigurasi yang benar, tambahkan secret berikut ke Streamlit Cloud:
-        
-        `gcp_service_account` - untuk akses Google Sheets
-        
-        Format TOML yang benar:
-        ```toml
-        [gcp_service_account]
-        type = "service_account"
-        project_id = "your-project-id"
-        private_key_id = "your-key-id"
-        private_key = "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"
-        client_email = "your-service-account@your-project.iam.gserviceaccount.com"
-        client_id = "your-client-id"
-        auth_uri = "https://accounts.google.com/o/oauth2/auth"
-        token_uri = "https://oauth2.googleapis.com/token"
-        auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
-        client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account"
-        universe_domain = "googleapis.com"
-        ```
-        """
-    },
-    "en": {
-        "page_title": "Trading Statistics | LuxQuant VIP | 智汇尊享会",
-        "main_title": "📊 LuxQuant VIP | 智汇尊享会 Trading Statistics",
-        "app_description": "Visualize your trading performance based on selected period.",
-        "language_selector": "Select Language:",
-        "period_selector": "Select Period:",
-        "period_week": "Last Week",
-        "period_month": "Last Month",
-        "period_all": "All Data",
-        "load_stats_button": "🔄 Load Statistics",
-        "error_message": "❌ Error: ",
-        "no_data_message": "No data available for this period.",
-        "winrate_chart_title": "### Winrate by Period",
-        "tpsl_chart_title": "### TP vs SL Comparison",
-        "stats_summary_title": "### Statistical Summary",
-        "avg_winrate": "Average Winrate",
-        "total_tp": "Total TP",
-        "total_sl": "Total SL", 
-        "total_signals": "Total Signals",
-        "overall_winrate": "Overall Winrate",
-        "completion_rate": "Completion Rate",
-        "data_table_title": "### Detailed Data",
-        "footer": "<div style='text-align: center'>Made with ❤️ by LuxQuant VIP | 智汇尊享会</div>",
-        "date": "Date",
-        "signals": "Signals",
-        "finished": "Finished",
-        "tp": "TP",
-        "sl": "SL",
-        "winrate": "Winrate",
-        "comment": "Comment",
-        "loading_message": "Loading data...",
-        "data_loaded": "Data loaded successfully!",
-        "config_header": "🔧 Configuration",
-        "config_text": """
-        ### Google Service Account Configuration
-        
-        For correct configuration, add the following secret to Streamlit Cloud:
-        
-        `gcp_service_account` - for Google Sheets access
-        
-        Correct TOML format:
-        ```toml
-        [gcp_service_account]
-        type = "service_account"
-        project_id = "your-project-id"
-        private_key_id = "your-key-id"
-        private_key = "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"
-        client_email = "your-service-account@your-project.iam.gserviceaccount.com"
-        client_id = "your-client-id"
-        auth_uri = "https://accounts.google.com/o/oauth2/auth"
-        token_uri = "https://oauth2.googleapis.com/token"
-        auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
-        client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account"
-        universe_domain = "googleapis.com"
-        ```
-        """
+# -------- STYLING --------
+def apply_custom_css():
+    st.markdown("""
+    <style>
+    /* Main app styling */
+    .stApp {
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+        color: #ffffff;
     }
-}
+    
+    /* Header styling */
+    .main-header {
+        text-align: center;
+        padding: 2rem 0;
+        background: linear-gradient(135deg, #16213e 0%, #0f0f23 100%);
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-title {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(45deg, #ffd700, #ffed4e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+    
+    .subtitle {
+        font-size: 1.2rem;
+        color: #b0b0b0;
+        margin-bottom: 1rem;
+    }
+    
+    .accuracy-badge {
+        background: linear-gradient(45deg, #ffd700, #ffed4e);
+        color: #000;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 1rem;
+    }
+    
+    /* Stats cards */
+    .stats-container {
+        display: flex;
+        gap: 1.5rem;
+        margin: 2rem 0;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        min-width: 200px;
+        flex: 1;
+        max-width: 300px;
+    }
+    
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #ffd700;
+        margin: 0.5rem 0;
+    }
+    
+    .stat-label {
+        font-size: 0.9rem;
+        color: #b0b0b0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Chart containers */
+    .chart-container {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    /* Buttons */
+    .stButton button {
+        background: linear-gradient(45deg, #ffd700, #ffed4e);
+        color: #000;
+        border: none;
+        border-radius: 25px;
+        padding: 0.7rem 2rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    
+    .stButton button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3);
+    }
+    
+    /* Radio buttons */
+    .stRadio > div {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 1rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Data table */
+    .stDataFrame {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Sidebar */
+    .css-1d391kg {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    }
+    
+    /* Success/Warning messages */
+    .stSuccess {
+        background: linear-gradient(45deg, #4caf50, #45a049);
+        border-radius: 10px;
+    }
+    
+    .stWarning {
+        background: linear-gradient(45deg, #ff9800, #f57c00);
+        border-radius: 10px;
+    }
+    
+    .stError {
+        background: linear-gradient(45deg, #f44336, #d32f2f);
+        border-radius: 10px;
+    }
+    
+
+    </style>
+    """, unsafe_allow_html=True)
 
 # -------- GOOGLE SHEETS CONNECTION --------
 @st.cache_resource
 def connect_to_gsheet():
     try:
-        # Get credentials from Streamlit secrets
         if "gcp_service_account" in st.secrets:
             credentials_info = st.secrets["gcp_service_account"]
         elif "credentials_json" in st.secrets:
@@ -147,7 +182,6 @@ def connect_to_gsheet():
             else:
                 credentials_info = json.loads(st.secrets["credentials_json"])
         else:
-            # Try to read from environment for local development
             credentials_json_str = os.environ.get("CREDENTIALS_JSON")
             if credentials_json_str:
                 credentials_info = json.loads(credentials_json_str)
@@ -173,42 +207,27 @@ def get_sheet_data():
     """Get all data from Google Sheets and convert to DataFrame"""
     sheet = connect_to_gsheet()
     
-    # Get all records including empty rows at the bottom
     all_values = sheet.get_all_values()
-    
-    # Find header row
     header_row = all_values[0]
-    
-    # Get data rows (skip header)
     data_rows = all_values[1:]
     
-    # Find the last non-empty row (checking key columns)
     last_index = 0
     for i, row in enumerate(data_rows):
-        # Consider a row non-empty if it has values in essential columns
-        if any(row[:6]):  # Check first 6 columns
+        if any(row[:6]):
             last_index = i
     
-    # Get only rows up to the last non-empty row
     valid_data_rows = data_rows[:last_index + 1] if data_rows else []
     
-    # Convert to DataFrame
     if valid_data_rows:
         df = pd.DataFrame(valid_data_rows, columns=header_row)
-        
-        # Remove empty rows where all essential columns are empty
         df = df[df.iloc[:, :6].any(axis=1)]
         
         if df.empty:
             return None
         
-        # Clean column names
         df.columns = df.columns.str.strip()
         
-        # Process columns based on expected structure from the images
-        # Expected columns: Date, Total_Signal, Finished, TP, SL, Winrate_pct
-        
-        # Find column mappings (case insensitive and flexible matching)
+        # Column mapping
         column_mapping = {}
         for col in df.columns:
             col_lower = col.lower().strip()
@@ -225,24 +244,21 @@ def get_sheet_data():
             elif any(keyword in col_lower for keyword in ['winrate', 'win_rate', 'win rate']):
                 column_mapping['Winrate_pct'] = col
         
-        # Rename columns to standard names
         df = df.rename(columns=column_mapping)
         
         # Process numeric columns
         numeric_columns = ['Total_Signal', 'Finished', 'TP', 'SL']
         for col in numeric_columns:
             if col in df.columns:
-                # Clean the data first (remove any non-numeric characters except numbers)
                 df[col] = df[col].astype(str).str.replace(r'[^\d]', '', regex=True)
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0).astype(int)
         
         # Process winrate column
         if 'Winrate_pct' in df.columns:
-            # Handle percentage format (e.g., "85.5%" -> 85.5)
             df['Winrate_num'] = df['Winrate_pct'].astype(str).str.replace('%', '').str.strip()
             df['Winrate_num'] = pd.to_numeric(df['Winrate_num'], errors='coerce').fillna(0)
         
-        # Process date column with improved parsing for range dates
+        # Process date column
         if 'Date' in df.columns:
             df['Date_parsed'] = None
             df['Date_display'] = df['Date'].astype(str)
@@ -253,17 +269,14 @@ def get_sheet_data():
                 
                 date_str = str(date_str).strip()
                 
-                # Handle date ranges like "05/22-05/23", "05/26-05/27"
+                # Handle date ranges
                 range_pattern = re.search(r'(\d{2})/(\d{2})-(\d{2})/(\d{2})', date_str)
                 if range_pattern:
                     start_month, start_day, end_month, end_day = range_pattern.groups()
-                    # Use the end date for sorting (more recent)
                     try:
-                        # Assume current year if not specified
                         current_year = datetime.datetime.now().year
                         end_date = pd.to_datetime(f"{current_year}-{end_month}-{end_day}", format='%Y-%m-%d')
                         df.at[idx, 'Date_parsed'] = end_date
-                        # Create a better display format
                         df.at[idx, 'Date_display'] = f"2025-{end_month}-{end_day}"
                         continue
                     except:
@@ -271,9 +284,9 @@ def get_sheet_data():
                 
                 # Handle simple date formats
                 date_patterns = [
-                    r'(\d{4})-(\d{1,2})-(\d{1,2})',  # YYYY-MM-DD
-                    r'(\d{1,2})/(\d{1,2})/(\d{4})',  # MM/DD/YYYY
-                    r'(\d{1,2})-(\d{1,2})-(\d{4})',  # MM-DD-YYYY
+                    r'(\d{4})-(\d{1,2})-(\d{1,2})',
+                    r'(\d{1,2})/(\d{1,2})/(\d{4})',
+                    r'(\d{1,2})-(\d{1,2})-(\d{4})',
                 ]
                 
                 parsed = False
@@ -281,9 +294,9 @@ def get_sheet_data():
                     match = re.search(pattern, date_str)
                     if match:
                         try:
-                            if pattern == date_patterns[0]:  # YYYY-MM-DD
+                            if pattern == date_patterns[0]:
                                 year, month, day = match.groups()
-                            else:  # MM/DD/YYYY or MM-DD-YYYY
+                            else:
                                 month, day, year = match.groups()
                             
                             parsed_date = pd.to_datetime(f"{year}-{month}-{day}", format='%Y-%m-%d')
@@ -294,21 +307,17 @@ def get_sheet_data():
                         except:
                             continue
                 
-                # If still not parsed, use a default approach
                 if not parsed:
                     try:
-                        # Try pandas built-in parsing as last resort
                         parsed_date = pd.to_datetime(date_str, errors='coerce')
                         if not pd.isna(parsed_date):
                             df.at[idx, 'Date_parsed'] = parsed_date
                             df.at[idx, 'Date_display'] = parsed_date.strftime('%Y-%m-%d')
                     except:
-                        # Use index-based date if all parsing fails
                         base_date = datetime.datetime.now() - pd.Timedelta(days=len(df)-idx-1)
                         df.at[idx, 'Date_parsed'] = base_date
                         df.at[idx, 'Date_display'] = base_date.strftime('%Y-%m-%d')
         
-        # Sort DataFrame by parsed date if available
         if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
             df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
             df = df.sort_values('Date_parsed')
@@ -324,9 +333,7 @@ def filter_data_by_period(df, period):
     
     today = datetime.datetime.now()
     
-    # Check if we have a date column to filter on
     if 'Date_parsed' not in df.columns or df['Date_parsed'].isna().all():
-        # If we don't have parsed dates, use the index as a proxy for recency
         total_rows = len(df)
         
         if period == 'week':
@@ -338,7 +345,6 @@ def filter_data_by_period(df, period):
         else:
             return df
     
-    # We have parsed dates, so use them for filtering
     if period == 'week':
         start_date = today - datetime.timedelta(days=7)
         filtered_df = df[df['Date_parsed'] >= start_date]
@@ -359,17 +365,14 @@ def calculate_statistics(df):
     if df is None or df.empty:
         return None
     
-    # Use the standardized column names
     tp_col = 'TP' if 'TP' in df.columns else None
     sl_col = 'SL' if 'SL' in df.columns else None
     total_signal_col = 'Total_Signal' if 'Total_Signal' in df.columns else None
     finished_col = 'Finished' if 'Finished' in df.columns else None
     
     if not tp_col or not sl_col:
-        st.warning("Missing essential columns (TP or SL)")
         return None
     
-    # Extract numeric data
     tp_data = pd.to_numeric(df[tp_col], errors='coerce').fillna(0)
     sl_data = pd.to_numeric(df[sl_col], errors='coerce').fillna(0)
     
@@ -378,13 +381,11 @@ def calculate_statistics(df):
         'total_sl': int(sl_data.sum()),
     }
     
-    # Calculate overall winrate from totals
     if stats['total_tp'] + stats['total_sl'] > 0:
         stats['overall_winrate'] = 100 * stats['total_tp'] / (stats['total_tp'] + stats['total_sl'])
     else:
         stats['overall_winrate'] = 0
     
-    # Calculate total signals and completion rate
     if total_signal_col:
         total_signals = pd.to_numeric(df[total_signal_col], errors='coerce').fillna(0).sum()
         stats['total_signals'] = int(total_signals)
@@ -405,182 +406,298 @@ def calculate_statistics(df):
     return stats
 
 # -------- VISUALIZATION FUNCTIONS --------
-def create_winrate_chart(df, lang):
-    """Create a line chart for winrate trend"""
+def create_winrate_chart(df):
+    """Create an enhanced winrate chart with Plotly"""
     if df is None or df.empty or 'Winrate_num' not in df.columns:
         return None
     
-    # Sort by date if available
     if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
         df = df.copy()
         df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
         df = df.sort_values('Date_parsed')
     
-    # Use Date_display for x-axis with proper sorting
-    domain = df['Date_display'].tolist()
+    fig = go.Figure()
     
-    chart = alt.Chart(df).mark_line(point=True).encode(
-        x=alt.X('Date_display:O', title=lang['date'], sort=domain),
-        y=alt.Y('Winrate_num:Q', title=lang['winrate'] + ' (%)', scale=alt.Scale(domain=[0, 100])),
-        tooltip=[
-            alt.Tooltip('Date_display:O', title=lang['date']),
-            alt.Tooltip('Winrate_num:Q', title=lang['winrate'] + ' (%)'),
-            alt.Tooltip('TP:Q', title='TP'),
-            alt.Tooltip('SL:Q', title='SL')
-        ]
-    ).properties(height=300)
+    # Add winrate line
+    fig.add_trace(go.Scatter(
+        x=df['Date_display'],
+        y=df['Winrate_num'],
+        mode='lines+markers',
+        name='Winrate',
+        line=dict(color='#FFD700', width=3),
+        marker=dict(size=8, color='#FFD700', line=dict(width=2, color='#FFF')),
+        hovertemplate='<b>Date:</b> %{x}<br><b>Winrate:</b> %{y}%<extra></extra>'
+    ))
     
-    return chart
+    # Add average line
+    avg_winrate = df['Winrate_num'].mean()
+    fig.add_hline(y=avg_winrate, line_dash="dash", line_color="#FF6B6B", 
+                  annotation_text=f"Average: {avg_winrate:.1f}%")
+    
+    fig.update_layout(
+        title="Historical Winrate Trend",
+        title_font=dict(size=20, color='#FFD700'),
+        xaxis_title="Date",
+        yaxis_title="Winrate (%)",
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white'),
+        height=400,
+        showlegend=False,
+        yaxis=dict(range=[0, 100], gridcolor='rgba(255,255,255,0.2)'),
+        xaxis=dict(gridcolor='rgba(255,255,255,0.2)')
+    )
+    
+    return fig
 
-def create_tpsl_chart(df, lang):
-    """Create a bar chart comparing TP vs SL by date"""
+def create_tpsl_chart(df):
+    """Create an enhanced TP/SL comparison chart"""
     if df is None or df.empty or 'TP' not in df.columns or 'SL' not in df.columns:
         return None
     
-    # Sort by date if available
     if 'Date_parsed' in df.columns and not df['Date_parsed'].isna().all():
         df = df.copy()
         df['Date_parsed'] = pd.to_datetime(df['Date_parsed'], errors='coerce')
         df = df.sort_values('Date_parsed')
     
-    # Create a copy for melting
-    chart_df = df[['Date_display', 'TP', 'SL']].copy()
+    fig = go.Figure()
     
-    # Melt the dataframe for the stacked bar chart
-    df_melted = pd.melt(
-        chart_df, 
-        id_vars=['Date_display'], 
-        value_vars=['TP', 'SL'],
-        var_name='Type', 
-        value_name='Count'
+    # Add TP bars
+    fig.add_trace(go.Bar(
+        x=df['Date_display'],
+        y=df['TP'],
+        name='Take Profit',
+        marker_color='#4CAF50',
+        hovertemplate='<b>Date:</b> %{x}<br><b>TP:</b> %{y}<extra></extra>'
+    ))
+    
+    # Add SL bars
+    fig.add_trace(go.Bar(
+        x=df['Date_display'],
+        y=df['SL'],
+        name='Stop Loss',
+        marker_color='#F44336',
+        hovertemplate='<b>Date:</b> %{x}<br><b>SL:</b> %{y}<extra></extra>'
+    ))
+    
+    fig.update_layout(
+        title="Take Profit vs Stop Loss Distribution",
+        title_font=dict(size=20, color='#FFD700'),
+        xaxis_title="Date",
+        yaxis_title="Count",
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white'),
+        height=400,
+        barmode='group',
+        legend=dict(x=0, y=1),
+        yaxis=dict(gridcolor='rgba(255,255,255,0.2)'),
+        xaxis=dict(gridcolor='rgba(255,255,255,0.2)')
     )
     
-    # Use Date_display for x-axis with proper sorting
-    domain = df['Date_display'].tolist()
-    
-    chart = alt.Chart(df_melted).mark_bar().encode(
-        x=alt.X('Date_display:O', title=lang['date'], sort=domain),
-        y=alt.Y('Count:Q', title='Count'),
-        color=alt.Color('Type:N', scale=alt.Scale(
-            domain=['TP', 'SL'],
-            range=['#36b37e', '#ff5630']
-        )),
-        tooltip=[
-            alt.Tooltip('Date_display:O', title=lang['date']),
-            alt.Tooltip('Type:N', title='Type'),
-            alt.Tooltip('Count:Q', title='Count')
-        ]
-    ).properties(height=300)
-    
-    return chart
+    return fig
 
-# -------- STREAMLIT APP --------
+def create_combined_dashboard_chart(df):
+    """Create a combined chart with multiple metrics"""
+    if df is None or df.empty:
+        return None
+    
+    # Create subplots
+    fig = make_subplots(
+        rows=2, cols=2,
+        subplot_titles=('Winrate Trend', 'TP vs SL', 'Cumulative Performance', 'Daily Signals'),
+        specs=[[{"secondary_y": False}, {"secondary_y": False}],
+               [{"secondary_y": False}, {"secondary_y": False}]]
+    )
+    
+    if 'Winrate_num' in df.columns:
+        # Winrate trend
+        fig.add_trace(
+            go.Scatter(x=df['Date_display'], y=df['Winrate_num'], 
+                      mode='lines+markers', name='Winrate',
+                      line=dict(color='#FFD700')),
+            row=1, col=1
+        )
+    
+    if 'TP' in df.columns and 'SL' in df.columns:
+        # TP vs SL
+        fig.add_trace(
+            go.Bar(x=df['Date_display'], y=df['TP'], name='TP', 
+                   marker_color='#4CAF50'),
+            row=1, col=2
+        )
+        fig.add_trace(
+            go.Bar(x=df['Date_display'], y=df['SL'], name='SL',
+                   marker_color='#F44336'),
+            row=1, col=2
+        )
+        
+        # Cumulative performance
+        cumulative_tp = df['TP'].cumsum()
+        cumulative_sl = df['SL'].cumsum()
+        fig.add_trace(
+            go.Scatter(x=df['Date_display'], y=cumulative_tp, 
+                      mode='lines', name='Cumulative TP',
+                      line=dict(color='#4CAF50')),
+            row=2, col=1
+        )
+        fig.add_trace(
+            go.Scatter(x=df['Date_display'], y=cumulative_sl,
+                      mode='lines', name='Cumulative SL',
+                      line=dict(color='#F44336')),
+            row=2, col=1
+        )
+    
+    if 'Total_Signal' in df.columns:
+        # Daily signals
+        fig.add_trace(
+            go.Bar(x=df['Date_display'], y=df['Total_Signal'], 
+                   name='Daily Signals', marker_color='#2196F3'),
+            row=2, col=2
+        )
+    
+    fig.update_layout(
+        height=800,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white'),
+        title_text="LuxQuant VIP Trading Dashboard",
+        title_font=dict(size=24, color='#FFD700'),
+        showlegend=True
+    )
+    
+    return fig
+
+# -------- MAIN APP --------
 def main():
-    # Initialize session state for language preference
-    if 'language' not in st.session_state:
-        st.session_state.language = "id"
-    
-    # Get current language text dictionary
-    lang = LANGUAGES[st.session_state.language]
-    
     st.set_page_config(
-        page_title=lang["page_title"],
+        page_title="LuxQuant VIP | Trading Dashboard",
         page_icon="📊",
-        layout="centered",
+        layout="wide",
         initial_sidebar_state="expanded",
     )
     
-    # Language selector in sidebar
-    with st.sidebar:
-        selected_lang = st.selectbox(
-            lang["language_selector"],
-            options=["id", "en"],
-            format_func=lambda x: "Bahasa Indonesia" if x == "id" else "English",
-            index=0 if st.session_state.language == "id" else 1
-        )
-        
-        # Update language if changed
-        if selected_lang != st.session_state.language:
-            st.session_state.language = selected_lang
-            lang = LANGUAGES[st.session_state.language]
-            st.rerun()
+    # Apply custom styling
+    apply_custom_css()
     
-    st.title(lang["main_title"])
-    
-    # Add image below title
-    try:
-        from PIL import Image
-        image_path = Path(IMAGE_PATH)
-        if image_path.exists():
-            st.image(IMAGE_PATH, use_column_width=True)
-        else:
-            st.warning(f"Gambar {IMAGE_PATH} tidak ditemukan. Pastikan file gambar tersedia di repositori GitHub Anda.")
-    except Exception as e:
-        st.warning(f"Tidak dapat menampilkan gambar: {str(e)}")
-    
-    st.markdown(lang["app_description"])
+    # Main header
+    st.markdown("""
+    <div class="main-header">
+        <div class="main-title">LuxQuant VIP | 智汇尊享会</div>
+        <div class="subtitle">Tools for Automated Crypto Trading Setup 24/7</div>
+        <div class="subtitle">Help traders identify market opportunities without having to monitor charts continuously.</div>
+        <div class="accuracy-badge">Historical Accuracy of 87.9% (No Future Guarantee)</div>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Period selector
-    period = st.radio(
-        lang["period_selector"],
-        options=["week", "month", "all"],
-        format_func=lambda x: lang["period_week"] if x == "week" else (
-            lang["period_month"] if x == "month" else lang["period_all"]
-        ),
-        horizontal=True
-    )
+    st.markdown("### 📊 Trading Performance Analysis")
     
-    # Load data button
-    if st.button(lang["load_stats_button"], use_container_width=True):
-        with st.spinner(lang["loading_message"]):
+    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+    
+    with col2:
+        period = st.radio(
+            "Select Time Period:",
+            options=["week", "month", "all"],
+            format_func=lambda x: {"week": "📅 Last Week", "month": "📆 Last Month", "all": "📈 All Time"}[x],
+            horizontal=False
+        )
+    
+    with col3:
+        load_button = st.button("🚀 Load Trading Statistics", use_container_width=True)
+    
+    if load_button:
+        with st.spinner("🔄 Loading trading data..."):
             try:
-                # Get all data from Google Sheets
+                # Get data
                 df = get_sheet_data()
                 
                 if df is None or df.empty:
-                    st.warning(lang["no_data_message"])
+                    st.warning("⚠️ No trading data available for the selected period.")
                 else:
-                    # Filter data by selected period
+                    # Filter data
                     filtered_df = filter_data_by_period(df, period)
                     
                     if filtered_df is None or filtered_df.empty:
-                        st.warning(lang["no_data_message"])
+                        st.warning("⚠️ No data available for the selected period.")
                     else:
-                        st.success(lang["data_loaded"])
+                        st.success("✅ Trading data loaded successfully!")
                         
                         # Calculate statistics
                         stats = calculate_statistics(filtered_df)
                         
-                        # Display statistics summary
                         if stats:
-                            st.markdown(lang["stats_summary_title"])
+                            # Display main statistics
+                            st.markdown("### 📈 Key Performance Metrics")
                             
-                            col1, col2, col3 = st.columns(3)
-                            col1.metric(lang["total_signals"], int(stats['total_signals']))
-                            col2.metric(lang["total_tp"], int(stats['total_tp']))
-                            col3.metric(lang["total_sl"], int(stats['total_sl']))
+                            # Create stats cards
+                            col1, col2, col3, col4 = st.columns(4)
                             
-                            col4, col5, col6 = st.columns(3)
-                            col4.metric(lang["overall_winrate"], f"{stats['overall_winrate']:.1f}%")
-                            col5.metric(lang["completion_rate"], f"{stats['completion_rate']:.1f}%")
+                            with col1:
+                                st.markdown(f"""
+                                <div class="stat-card">
+                                    <div class="stat-icon">📊</div>
+                                    <div class="stat-value">{stats['overall_winrate']:.1f}%</div>
+                                    <div class="stat-label">Historical System<br>Accuracy (Win-Rate)</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            
+                            with col2:
+                                st.markdown(f"""
+                                <div class="stat-card">
+                                    <div class="stat-icon">⚡</div>
+                                    <div class="stat-value">{stats['total_signals']:,}</div>
+                                    <div class="stat-label">Total System<br>Output</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            
+                            with col3:
+                                st.markdown(f"""
+                                <div class="stat-card">
+                                    <div class="stat-icon">🎯</div>
+                                    <div class="stat-value">{stats['total_tp']:,}</div>
+                                    <div class="stat-label">Take Profit<br>Signals</div>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            
+                            with col4:
+                                st.markdown(f"""
+                                <div class="stat-card">
+                                    <div class="stat-icon">👥</div>
+                                    <div class="stat-value">8,562</div>
+                                    <div class="stat-label">Global<br>Users</div>
+                                </div>
+                                """, unsafe_allow_html=True)
                         
-                        # Create and display charts
-                        st.markdown(lang["winrate_chart_title"])
-                        winrate_chart = create_winrate_chart(filtered_df, lang)
-                        if winrate_chart:
-                            st.altair_chart(winrate_chart, use_container_width=True)
-                        else:
-                            st.info("Chart winrate tidak dapat ditampilkan (data winrate tidak ditemukan)")
+                        # Charts section
+                        st.markdown("### 📊 Performance Analytics")
                         
-                        st.markdown(lang["tpsl_chart_title"])
-                        tpsl_chart = create_tpsl_chart(filtered_df, lang)
-                        if tpsl_chart:
-                            st.altair_chart(tpsl_chart, use_container_width=True)
-                        else:
-                            st.info("Chart TP/SL tidak dapat ditampilkan (data TP/SL tidak ditemukan)")
+                        # Combined dashboard
+                        combined_chart = create_combined_dashboard_chart(filtered_df)
+                        if combined_chart:
+                            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                            st.plotly_chart(combined_chart, use_container_width=True)
+                            st.markdown('</div>', unsafe_allow_html=True)
                         
-                        # Display detailed data table
-                        st.markdown(lang["data_table_title"])
+                        # Individual charts
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            winrate_chart = create_winrate_chart(filtered_df)
+                            if winrate_chart:
+                                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                                st.plotly_chart(winrate_chart, use_container_width=True)
+                                st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        with col2:
+                            tpsl_chart = create_tpsl_chart(filtered_df)
+                            if tpsl_chart:
+                                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                                st.plotly_chart(tpsl_chart, use_container_width=True)
+                                st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        # Detailed data table
+                        st.markdown("### 📋 Detailed Trading Records")
                         
                         # Prepare display columns
                         display_cols = []
@@ -589,27 +706,174 @@ def main():
                             if col in filtered_df.columns:
                                 display_cols.append(col)
                         
-                        # Display the data table
+                        # Display the data table with styling
                         if display_cols:
+                            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
                             st.dataframe(
                                 filtered_df[display_cols],
-                                use_container_width=True
+                                use_container_width=True,
+                                height=300
                             )
+                            st.markdown('</div>', unsafe_allow_html=True)
                         else:
-                            st.dataframe(filtered_df, use_container_width=True)
+                            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                            st.dataframe(filtered_df, use_container_width=True, height=300)
+                            st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        # Additional insights
+                        st.markdown("### 💡 Trading Insights")
+                        
+                        col1, col2, col3 = st.columns(3)
+                        
+                        with col1:
+                            if stats['overall_winrate'] >= 70:
+                                insight_color = "#4CAF50"
+                                insight_icon = "🟢"
+                                insight_text = "Excellent Performance"
+                            elif stats['overall_winrate'] >= 60:
+                                insight_color = "#FF9800"
+                                insight_icon = "🟡"
+                                insight_text = "Good Performance"
+                            else:
+                                insight_color = "#F44336"
+                                insight_icon = "🔴"
+                                insight_text = "Needs Improvement"
+                            
+                            st.markdown(f"""
+                            <div class="stat-card">
+                                <div class="stat-icon">{insight_icon}</div>
+                                <div class="stat-label" style="color: {insight_color};">{insight_text}</div>
+                                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Winrate: {stats['overall_winrate']:.1f}%
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col2:
+                            # Calculate recent trend
+                            if len(filtered_df) >= 3 and 'Winrate_num' in filtered_df.columns:
+                                recent_avg = filtered_df['Winrate_num'].tail(3).mean()
+                                overall_avg = filtered_df['Winrate_num'].mean()
+                                
+                                if recent_avg > overall_avg:
+                                    trend_icon = "📈"
+                                    trend_text = "Improving Trend"
+                                    trend_color = "#4CAF50"
+                                else:
+                                    trend_icon = "📉"
+                                    trend_text = "Declining Trend"
+                                    trend_color = "#F44336"
+                            else:
+                                trend_icon = "📊"
+                                trend_text = "Stable Performance"
+                                trend_color = "#2196F3"
+                            
+                            st.markdown(f"""
+                            <div class="stat-card">
+                                <div class="stat-icon">{trend_icon}</div>
+                                <div class="stat-label" style="color: {trend_color};">{trend_text}</div>
+                                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                                    Recent Performance Analysis
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col3:
+                            # Risk assessment
+                            if stats['total_sl'] > 0:
+                                risk_ratio = stats['total_tp'] / stats['total_sl']
+                                if risk_ratio >= 2:
+                                    risk_icon = "🟢"
+                                    risk_text = "Low Risk"
+                                    risk_color = "#4CAF50"
+                                elif risk_ratio >= 1:
+                                    risk_icon = "🟡"
+                                    risk_text = "Medium Risk"
+                                    risk_color = "#FF9800"
+                                else:
+                                    risk_icon = "🔴"
+                                    risk_text = "High Risk"
+                                    risk_color = "#F44336"
+                            else:
+                                risk_icon = "🟢"
+                                risk_text = "Low Risk"
+                                risk_color = "#4CAF50"
+                            
+                            st.markdown(f"""
+                            <div class="stat-card">
+                                <div class="stat-icon">{risk_icon}</div>
+                                <div class="stat-label" style="color: {risk_color};">{risk_text}</div>
+                                <div style="font-size: 0.9rem; margin-top: 0.5rem;">
+                                    TP/SL Ratio: {stats['total_tp']}/{stats['total_sl']}
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
             
             except Exception as e:
-                st.error(f"{lang['error_message']}{str(e)}")
-                # Show debug information
+                st.error(f"❌ Error loading data: {str(e)}")
                 st.error(f"Debug info: {type(e).__name__}")
     
-    # Configuration information
-    with st.expander(lang["config_header"]):
-        st.markdown(lang["config_text"])
+    # Action buttons
+    st.markdown("### 🚀 Take Action")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("📊 SUBSCRIBE NOW", use_container_width=True):
+            st.success("🎉 Redirecting to subscription page...")
+    
+    with col2:
+        if st.button("📦 VIEW PACKAGES", use_container_width=True):
+            st.info("📋 Displaying available packages...")
+    
+    with col3:
+        if st.button("📞 CONTACT SUPPORT", use_container_width=True):
+            st.info("💬 Connecting to support team...")
+    
+    # Configuration section
+    with st.expander("🔧 Google Sheets Configuration"):
+        st.markdown("""
+        ### Google Service Account Configuration
+        
+        For correct configuration, add the following secret to Streamlit Cloud:
+        
+        `gcp_service_account` - for Google Sheets access
+        
+        **Required TOML format:**
+        ```toml
+        [gcp_service_account]
+        type = "service_account"
+        project_id = "your-project-id"
+        private_key_id = "your-key-id"
+        private_key = "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n"
+        client_email = "your-service-account@your-project.iam.gserviceaccount.com"
+        client_id = "your-client-id"
+        auth_uri = "https://accounts.google.com/o/oauth2/auth"
+        token_uri = "https://oauth2.googleapis.com/token"
+        auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+        client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/your-service-account"
+        universe_domain = "googleapis.com"
+        ```
+        
+        ### Spreadsheet Structure
+        Expected columns in your Google Sheet:
+        - **Date**: Trading date (YYYY-MM-DD format)
+        - **Total_Signal**: Total signals generated
+        - **Finished**: Completed trades
+        - **TP**: Take Profit count
+        - **SL**: Stop Loss count
+        - **Winrate**: Win rate percentage
+        """)
     
     # Footer
     st.markdown("---")
-    st.markdown(lang["footer"], unsafe_allow_html=True)
+    st.markdown("""
+    <div style='text-align: center; padding: 2rem; background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%); backdrop-filter: blur(10px); border-radius: 15px; margin-top: 2rem;'>
+        <h3 style='color: #FFD700; margin-bottom: 1rem;'>Ready to Start Automated Trading?</h3>
+        <p style='color: #B0B0B0; margin-bottom: 1.5rem;'>Join thousands of traders using LuxQuant VIP for automated crypto trading signals.</p>
+        <p style='color: #888; font-size: 0.9rem;'>Made with ❤️ by LuxQuant VIP | 智汇尊享会 | Historical accuracy does not guarantee future results</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
