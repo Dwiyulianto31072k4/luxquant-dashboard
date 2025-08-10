@@ -18,15 +18,16 @@ class Config:
     SPREADSHEET_ID = "1g3XL1EllHoWV3jhmi7gT3at6MtCNTJBo8DQ1WyWhMEo"
     SHEET_NAME = "Sheet1"
     
-    # Binance Color Scheme
+    # Binance Color Scheme - Enhanced for better readability
     COLORS = {
         'primary': '#F0B90B',      # Binance Yellow
         'secondary': '#EAECEF',    # Light Gray Text
         'background': '#0B0E11',   # Dark Background
         'card_bg': '#181A20',      # Card Background
         'border': '#2B3139',       # Border Gray
-        'text_primary': '#FFFFFF', # Primary Text
-        'text_secondary': '#B7BDC6', # Secondary Text
+        'text_primary': '#FFFFFF', # Primary Text - White for max contrast
+        'text_secondary': '#E8E8E8', # Secondary Text - Lighter for better readability
+        'text_muted': '#C7C7C7',   # Muted text - Better contrast than previous
         'success': '#0ECB81',      # Binance Green
         'danger': '#F6465D',       # Binance Red
         'warning': '#F0B90B',      # Binance Yellow
@@ -40,7 +41,7 @@ class StyleManager:
     
     @staticmethod
     def apply_custom_css():
-        """Apply comprehensive responsive CSS styling"""
+        """Apply comprehensive responsive CSS styling with improved readability"""
         st.markdown("""
         <style>
         /* Import Binance-like fonts */
@@ -49,7 +50,7 @@ class StyleManager:
         /* Main app styling with Binance colors */
         .stApp {
             background: #0B0E11;
-            color: #EAECEF;
+            color: #FFFFFF;
             font-family: 'IBM Plex Sans', sans-serif;
         }
         
@@ -85,7 +86,7 @@ class StyleManager:
         
         .subtitle {
             font-size: clamp(0.9rem, 2vw, 1.1rem);
-            color: #B7BDC6;
+            color: #E8E8E8;
             margin-bottom: 1rem;
             font-weight: 400;
             line-height: 1.5;
@@ -122,7 +123,7 @@ class StyleManager:
             box-shadow: 0 6px 20px rgba(240, 185, 11, 0.4);
         }
         
-        /* Binance-style stats cards - Responsive */
+        /* Binance-style stats cards - Enhanced readability */
         .stat-card {
             background: linear-gradient(135deg, #181A20 0%, #1E2329 100%);
             border: 1px solid #2B3139;
@@ -161,14 +162,14 @@ class StyleManager:
         
         .stat-label {
             font-size: clamp(0.75rem, 2vw, 0.9rem);
-            color: #B7BDC6;
+            color: #FFFFFF;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 500;
             line-height: 1.3;
         }
         
-        /* Chart containers - Responsive */
+        /* Chart containers - Enhanced */
         .chart-container {
             background: linear-gradient(135deg, #181A20 0%, #1E2329 100%);
             border: 1px solid #2B3139;
@@ -179,7 +180,7 @@ class StyleManager:
             overflow-x: auto;
         }
         
-        /* Binance-style buttons - Responsive */
+        /* Binance-style buttons - Enhanced */
         .stButton button {
             background: linear-gradient(135deg, #F0B90B 0%, #FCD535 100%);
             color: #0B0E11;
@@ -203,7 +204,7 @@ class StyleManager:
             background: linear-gradient(135deg, #FCD535 0%, #F0B90B 100%);
         }
         
-        /* Radio buttons with better visibility - Responsive */
+        /* Radio buttons with better visibility */
         .stRadio > div {
             background: linear-gradient(135deg, #181A20 0%, #1E2329 100%);
             border-radius: 12px;
@@ -233,12 +234,27 @@ class StyleManager:
             }
         }
         
-        /* Data table styling - Responsive */
+        /* Data table styling - Enhanced readability */
         .stDataFrame {
             background: #181A20;
             border-radius: 8px;
             border: 1px solid #2B3139;
             overflow-x: auto;
+        }
+        
+        .stDataFrame table {
+            color: #FFFFFF !important;
+        }
+        
+        .stDataFrame th {
+            background-color: #2B3139 !important;
+            color: #F0B90B !important;
+            font-weight: 600 !important;
+        }
+        
+        .stDataFrame td {
+            color: #FFFFFF !important;
+            background-color: #181A20 !important;
         }
         
         @media (max-width: 768px) {
@@ -247,9 +263,9 @@ class StyleManager:
             }
         }
         
-        /* Text color overrides */
+        /* Text color overrides - Enhanced contrast */
         .stMarkdown p, .stMarkdown span, .stMarkdown div {
-            color: #EAECEF !important;
+            color: #FFFFFF !important;
         }
         
         h1, h2, h3, h4, h5, h6 {
@@ -260,12 +276,13 @@ class StyleManager:
             margin-bottom: 1rem !important;
         }
         
-        /* Success/Warning/Error messages - Responsive */
+        /* Success/Warning/Error messages */
         .stSuccess {
             background: linear-gradient(135deg, #0ECB81 0%, #03A66D 100%);
             border-radius: 8px;
             border: none;
             margin: 1rem 0;
+            color: #FFFFFF !important;
         }
         
         .stWarning {
@@ -273,6 +290,7 @@ class StyleManager:
             border-radius: 8px;
             border: none;
             margin: 1rem 0;
+            color: #0B0E11 !important;
         }
         
         .stError {
@@ -280,6 +298,13 @@ class StyleManager:
             border-radius: 8px;
             border: none;
             margin: 1rem 0;
+            color: #FFFFFF !important;
+        }
+        
+        /* Streamlit specific overrides */
+        .stSelectbox label, .stRadio label, .stTextInput label {
+            color: #FFFFFF !important;
+            font-weight: 600 !important;
         }
         
         /* Period selector responsive */
@@ -607,7 +632,7 @@ class ChartBuilder:
     
     @staticmethod
     def create_winrate_chart(df: Optional[pd.DataFrame]) -> Optional[go.Figure]:
-        """Create an enhanced winrate chart"""
+        """Create an enhanced winrate chart with better readability"""
         if df is None or df.empty or 'Winrate_num' not in df.columns:
             return None
         
@@ -643,17 +668,17 @@ class ChartBuilder:
         
         fig.update_layout(
             title=dict(text="Winrate Trend", font=dict(size=18, color=Config.COLORS['primary'])),
-            xaxis_title=dict(text="Date", font=dict(color=Config.COLORS['text_secondary'])),
-            yaxis_title=dict(text="Winrate (%)", font=dict(color=Config.COLORS['text_secondary'])),
+            xaxis_title=dict(text="Date", font=dict(color=Config.COLORS['text_primary'])),
+            yaxis_title=dict(text="Winrate (%)", font=dict(color=Config.COLORS['text_primary'])),
             plot_bgcolor=Config.COLORS['background'],
             paper_bgcolor=Config.COLORS['background'],
-            font=dict(color=Config.COLORS['text_secondary'], size=12),
+            font=dict(color=Config.COLORS['text_primary'], size=12),
             height=350,
             showlegend=False,
             yaxis=dict(range=[0, 100], gridcolor=Config.COLORS['grid'], 
-                      tickfont=dict(color=Config.COLORS['text_secondary'], size=11), dtick=10),
+                      tickfont=dict(color=Config.COLORS['text_primary'], size=11), dtick=10),
             xaxis=dict(gridcolor=Config.COLORS['grid'], 
-                      tickfont=dict(color=Config.COLORS['text_secondary'], size=11)),
+                      tickfont=dict(color=Config.COLORS['text_primary'], size=11)),
             margin=dict(l=60, r=60, t=60, b=60)
         )
         
@@ -661,7 +686,7 @@ class ChartBuilder:
     
     @staticmethod
     def create_tpsl_chart(df: Optional[pd.DataFrame]) -> Optional[go.Figure]:
-        """Create TP/SL comparison chart"""
+        """Create TP/SL comparison chart with better readability"""
         if df is None or df.empty or 'TP' not in df.columns or 'SL' not in df.columns:
             return None
         
@@ -690,8 +715,8 @@ class ChartBuilder:
         
         fig.update_layout(
             title=dict(text="TP vs SL", font=dict(size=18, color=Config.COLORS['primary'])),
-            xaxis_title=dict(text="Date", font=dict(color=Config.COLORS['text_secondary'])),
-            yaxis_title=dict(text="Count", font=dict(color=Config.COLORS['text_secondary'])),
+            xaxis_title=dict(text="Date", font=dict(color=Config.COLORS['text_primary'])),
+            yaxis_title=dict(text="Count", font=dict(color=Config.COLORS['text_primary'])),
             plot_bgcolor=Config.COLORS['background'],
             paper_bgcolor=Config.COLORS['background'],
             font=dict(color=Config.COLORS['text_primary'], size=12),
@@ -699,9 +724,9 @@ class ChartBuilder:
             legend=dict(x=0, y=1, font=dict(color=Config.COLORS['text_primary'], size=12),
                        bgcolor=Config.COLORS['background']),
             yaxis=dict(gridcolor=Config.COLORS['grid'], 
-                      tickfont=dict(color=Config.COLORS['text_secondary'], size=11)),
+                      tickfont=dict(color=Config.COLORS['text_primary'], size=11)),
             xaxis=dict(gridcolor=Config.COLORS['grid'], 
-                      tickfont=dict(color=Config.COLORS['text_secondary'], size=11)),
+                      tickfont=dict(color=Config.COLORS['text_primary'], size=11)),
             margin=dict(l=60, r=60, t=60, b=60)
         )
         
@@ -709,7 +734,7 @@ class ChartBuilder:
     
     @staticmethod
     def create_combined_dashboard_chart(df: Optional[pd.DataFrame]) -> Optional[go.Figure]:
-        """Create combined dashboard chart"""
+        """Create combined dashboard chart with enhanced readability"""
         if df is None or df.empty:
             return None
         
@@ -770,28 +795,28 @@ class ChartBuilder:
                 row=2, col=2
             )
         
-        # Update layout
+        # Update layout with better readability
         fig.update_layout(
             height=700,
             plot_bgcolor=Config.COLORS['background'],
             paper_bgcolor=Config.COLORS['background'],
-            font=dict(color=Config.COLORS['primary'], size=12),
+            font=dict(color=Config.COLORS['text_primary'], size=12),
             title_text="LuxQuant VIP Trading Dashboard",
             title_font=dict(size=20, color=Config.COLORS['primary']),
             showlegend=True,
-            legend=dict(font=dict(color=Config.COLORS['text_secondary']),
+            legend=dict(font=dict(color=Config.COLORS['text_primary']),
                        bgcolor=Config.COLORS['background'])
         )
         
-        # Update subplot titles
+        # Update subplot titles with better contrast
         for i in fig['layout']['annotations']:
             i['font'] = dict(color=Config.COLORS['primary'], size=14)
         
-        # Update axes
+        # Update axes with better readability
         fig.update_xaxes(gridcolor=Config.COLORS['grid'],
-                        tickfont=dict(color=Config.COLORS['text_secondary'], size=10))
+                        tickfont=dict(color=Config.COLORS['text_primary'], size=10))
         fig.update_yaxes(gridcolor=Config.COLORS['grid'],
-                        tickfont=dict(color=Config.COLORS['text_secondary'], size=10))
+                        tickfont=dict(color=Config.COLORS['text_primary'], size=10))
         
         return fig
 
@@ -841,7 +866,7 @@ class UIComponents:
     
     @staticmethod
     def render_stats_cards(stats: Dict[str, Any]):
-        """Render statistics cards with responsive grid"""
+        """Render statistics cards with completion rate instead of global users"""
         st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin-bottom: 1.5rem; text-align: center;">📈 Key Performance Metrics</h3>', unsafe_allow_html=True)
         
         # Use responsive columns
@@ -877,15 +902,15 @@ class UIComponents:
         with col4:
             st.markdown(f"""
             <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-value">8,562</div>
-                <div class="stat-label">Global<br>Users</div>
+                <div class="stat-icon">✅</div>
+                <div class="stat-value">{stats['completion_rate']:.1f}%</div>
+                <div class="stat-label">Completion<br>Rate</div>
             </div>
             """, unsafe_allow_html=True)
     
     @staticmethod
     def render_insights(stats: Dict[str, Any], filtered_df: pd.DataFrame):
-        """Render trading insights with responsive layout"""
+        """Render trading insights with enhanced readability"""
         st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin: 2rem 0 1.5rem 0; text-align: center;">💡 Trading Insights</h3>', unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns(3)
@@ -908,8 +933,8 @@ class UIComponents:
             st.markdown(f"""
             <div class="stat-card">
                 <div class="stat-icon">{insight_icon}</div>
-                <div class="stat-label" style="color: {insight_color};">{insight_text}</div>
-                <div style="font-size: clamp(0.75rem, 2vw, 0.9rem); margin-top: 0.5rem;">
+                <div class="stat-label" style="color: {insight_color}; font-weight: 600;">{insight_text}</div>
+                <div style="font-size: clamp(0.75rem, 2vw, 0.9rem); margin-top: 0.5rem; color: #FFFFFF;">
                     Winrate: {stats['overall_winrate']:.1f}%
                 </div>
             </div>
@@ -937,47 +962,41 @@ class UIComponents:
             st.markdown(f"""
             <div class="stat-card">
                 <div class="stat-icon">{trend_icon}</div>
-                <div class="stat-label" style="color: {trend_color};">{trend_text}</div>
-                <div style="font-size: clamp(0.75rem, 2vw, 0.9rem); margin-top: 0.5rem;">
+                <div class="stat-label" style="color: {trend_color}; font-weight: 600;">{trend_text}</div>
+                <div style="font-size: clamp(0.75rem, 2vw, 0.9rem); margin-top: 0.5rem; color: #FFFFFF;">
                     Recent Performance Analysis
                 </div>
             </div>
             """, unsafe_allow_html=True)
         
         with col3:
-            # Risk assessment
-            if stats['total_sl'] > 0:
-                risk_ratio = stats['total_tp'] / stats['total_sl']
-                if risk_ratio >= 2:
-                    risk_icon = "🟢"
-                    risk_text = "Low Risk"
-                    risk_color = Config.COLORS['success']
-                elif risk_ratio >= 1:
-                    risk_icon = "🟡"
-                    risk_text = "Medium Risk"
-                    risk_color = Config.COLORS['warning']
-                else:
-                    risk_icon = "🔴"
-                    risk_text = "High Risk"
-                    risk_color = Config.COLORS['danger']
+            # Completion rate insight
+            if stats['completion_rate'] >= 90:
+                completion_icon = "🟢"
+                completion_text = "High Completion"
+                completion_color = Config.COLORS['success']
+            elif stats['completion_rate'] >= 70:
+                completion_icon = "🟡"
+                completion_text = "Good Completion"
+                completion_color = Config.COLORS['warning']
             else:
-                risk_icon = "🟢"
-                risk_text = "Low Risk"
-                risk_color = Config.COLORS['success']
+                completion_icon = "🔴"
+                completion_text = "Low Completion"
+                completion_color = Config.COLORS['danger']
             
             st.markdown(f"""
             <div class="stat-card">
-                <div class="stat-icon">{risk_icon}</div>
-                <div class="stat-label" style="color: {risk_color};">{risk_text}</div>
-                <div style="font-size: clamp(0.75rem, 2vw, 0.9rem); margin-top: 0.5rem;">
-                    TP/SL Ratio: {stats['total_tp']}/{stats['total_sl']}
+                <div class="stat-icon">{completion_icon}</div>
+                <div class="stat-label" style="color: {completion_color}; font-weight: 600;">{completion_text}</div>
+                <div style="font-size: clamp(0.75rem, 2vw, 0.9rem); margin-top: 0.5rem; color: #FFFFFF;">
+                    {stats['completion_rate']:.1f}% Signals Closed
                 </div>
             </div>
             """, unsafe_allow_html=True)
     
     @staticmethod
     def render_action_buttons():
-        """Render responsive action buttons"""
+        """Render responsive action buttons with better styling"""
         st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin: 2rem 0 1.5rem 0; text-align: center;">🚀 Take Action</h3>', unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns(3)
@@ -996,13 +1015,13 @@ class UIComponents:
     
     @staticmethod
     def render_footer():
-        """Render responsive footer"""
+        """Render responsive footer with better contrast"""
         st.markdown("---")
         st.markdown("""
         <div class='footer-container' style='text-align: center; padding: clamp(1rem, 3vw, 2rem); background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%); backdrop-filter: blur(10px); border-radius: 15px; margin-top: 2rem;'>
             <h3 style='color: #F0B90B; margin-bottom: 1rem; font-size: clamp(1.2rem, 3vw, 1.5rem);'>Ready to Start Automated Trading?</h3>
-            <p style='color: #B0B0B0; margin-bottom: 1.5rem; font-size: clamp(0.9rem, 2vw, 1rem);'>Join thousands of traders using LuxQuant VIP for automated crypto trading signals.</p>
-            <p style='color: #888; font-size: clamp(0.8rem, 1.5vw, 0.9rem);'>Made with ❤️ by LuxQuant VIP | 智汇尊享会 | Historical accuracy does not guarantee future results</p>
+            <p style='color: #FFFFFF; margin-bottom: 1.5rem; font-size: clamp(0.9rem, 2vw, 1rem);'>Join thousands of traders using LuxQuant VIP for automated crypto trading signals.</p>
+            <p style='color: #C7C7C7; font-size: clamp(0.8rem, 1.5vw, 0.9rem);'>Made with ❤️ by LuxQuant VIP | 智汇尊享会 | Historical accuracy does not guarantee future results</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1087,7 +1106,7 @@ class LuxQuantDashboard:
                 st.error(f"Debug info: {type(e).__name__}")
     
     def _render_charts(self, filtered_df: pd.DataFrame):
-        """Render all charts with responsive layout"""
+        """Render all charts with enhanced readability"""
         st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin: 2rem 0 1.5rem 0; text-align: center;">📊 Performance Analytics</h3>', unsafe_allow_html=True)
         
         # Combined dashboard - responsive height
@@ -1130,7 +1149,7 @@ class LuxQuantDashboard:
                 st.markdown('</div>', unsafe_allow_html=True)
     
     def _render_data_table(self, filtered_df: pd.DataFrame):
-        """Render responsive detailed data table"""
+        """Render responsive detailed data table with enhanced styling"""
         st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin: 2rem 0 1.5rem 0; text-align: center;">📋 Detailed Trading Records</h3>', unsafe_allow_html=True)
         
         # Prepare display columns
@@ -1140,7 +1159,7 @@ class LuxQuantDashboard:
             if col in filtered_df.columns:
                 display_cols.append(col)
         
-        # Display the data table with responsive styling
+        # Display the data table with enhanced styling
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         if display_cols:
             # Create a responsive dataframe display
