@@ -253,27 +253,80 @@ class StyleManager:
             }
         }
         
-        /* Data table styling - Enhanced readability */
+        /* Data table styling - Enhanced dengan styling Binance */
         .stDataFrame {
-            background: #181A20;
-            border-radius: 8px;
-            border: 1px solid #2B3139;
-            overflow-x: auto;
+            background: #181A20 !important;
+            border-radius: 12px !important;
+            border: 2px solid #F0B90B !important;
+            overflow: hidden !important;
+            box-shadow: 0 4px 20px rgba(240, 185, 11, 0.2) !important;
         }
         
         .stDataFrame table {
             color: #FFFFFF !important;
+            background: #181A20 !important;
+            border-collapse: collapse !important;
+        }
+        
+        .stDataFrame thead {
+            background: linear-gradient(135deg, #F0B90B 0%, #FCD535 100%) !important;
         }
         
         .stDataFrame th {
-            background-color: #2B3139 !important;
-            color: #F0B90B !important;
-            font-weight: 600 !important;
+            background: linear-gradient(135deg, #F0B90B 0%, #FCD535 100%) !important;
+            color: #0B0E11 !important;
+            font-weight: 700 !important;
+            font-size: 0.95rem !important;
+            padding: 12px 8px !important;
+            text-align: center !important;
+            border: 1px solid #F0B90B !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.5px !important;
         }
         
         .stDataFrame td {
             color: #FFFFFF !important;
             background-color: #181A20 !important;
+            padding: 10px 8px !important;
+            text-align: center !important;
+            border: 1px solid #2B3139 !important;
+            font-weight: 500 !important;
+            font-size: 0.9rem !important;
+        }
+        
+        .stDataFrame tbody tr:nth-child(even) {
+            background-color: #1E2329 !important;
+        }
+        
+        .stDataFrame tbody tr:nth-child(odd) {
+            background-color: #181A20 !important;
+        }
+        
+        .stDataFrame tbody tr:hover {
+            background-color: #2B3139 !important;
+            transition: background-color 0.3s ease !important;
+        }
+        
+        /* Table container dengan border kuning */
+        .stDataFrame > div {
+            border: 2px solid #F0B90B !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+        }
+        
+        /* Scrollbar styling untuk table */
+        .stDataFrame::-webkit-scrollbar {
+            height: 8px;
+            background: #2B3139;
+        }
+        
+        .stDataFrame::-webkit-scrollbar-thumb {
+            background: #F0B90B;
+            border-radius: 4px;
+        }
+        
+        .stDataFrame::-webkit-scrollbar-track {
+            background: #181A20;
         }
         
         @media (max-width: 768px) {
@@ -1014,25 +1067,6 @@ class UIComponents:
             """, unsafe_allow_html=True)
     
     @staticmethod
-    def render_action_buttons():
-        """Render responsive action buttons with better styling"""
-        st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin: 2rem 0 1.5rem 0; text-align: center;">🚀 Take Action</h3>', unsafe_allow_html=True)
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            if st.button("📊 SUBSCRIBE NOW", use_container_width=True):
-                st.success("🎉 Redirecting to subscription page...")
-        
-        with col2:
-            if st.button("📦 VIEW PACKAGES", use_container_width=True):
-                st.info("📋 Displaying available packages...")
-        
-        with col3:
-            if st.button("📞 CONTACT SUPPORT", use_container_width=True):
-                st.info("💬 Connecting to support team...")
-    
-    @staticmethod
     def render_footer():
         """Render responsive footer with better contrast"""
         st.markdown("---")
@@ -1112,7 +1146,7 @@ class LuxQuantDashboard:
                 # Render charts
                 self._render_charts(filtered_df)
                 
-                # Render data table
+                # Render data table with enhanced styling
                 self._render_data_table(filtered_df)
                 
                 # Render insights
@@ -1167,7 +1201,7 @@ class LuxQuantDashboard:
                 st.markdown('</div>', unsafe_allow_html=True)
     
     def _render_data_table(self, filtered_df: pd.DataFrame):
-        """Render responsive detailed data table with enhanced styling"""
+        """Render enhanced data table with Binance styling"""
         st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin: 2rem 0 1.5rem 0; text-align: center;">📋 Detailed Trading Records</h3>', unsafe_allow_html=True)
         
         # Prepare display columns
@@ -1177,23 +1211,36 @@ class LuxQuantDashboard:
             if col in filtered_df.columns:
                 display_cols.append(col)
         
-        # Display the data table with enhanced styling
+        # Display the data table with enhanced Binance styling
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         if display_cols:
             # Create a responsive dataframe display
             display_df = filtered_df[display_cols].copy()
             
+            # Rename columns for better display
+            column_rename = {
+                'Date': '📅 Date',
+                'Total_Signal': '📊 Total Signal',
+                'Finished': '✅ Finished',
+                'TP': '🎯 TP',
+                'SL': '🛑 SL',
+                'Winrate_pct': '📈 Winrate'
+            }
+            
+            display_df = display_df.rename(columns={k: v for k, v in column_rename.items() if k in display_df.columns})
+            
             # Format for better mobile display
             if len(display_df.columns) > 4:
                 st.markdown(
-                    '<div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">',
+                    '<div style="overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px;">',
                     unsafe_allow_html=True
                 )
             
             st.dataframe(
                 display_df, 
                 use_container_width=True, 
-                height=250 if st.session_state.get('mobile_view', False) else 300
+                height=300,
+                hide_index=True
             )
             
             if len(display_df.columns) > 4:
@@ -1202,7 +1249,8 @@ class LuxQuantDashboard:
             st.dataframe(
                 filtered_df, 
                 use_container_width=True, 
-                height=250 if st.session_state.get('mobile_view', False) else 300
+                height=300,
+                hide_index=True
             )
         st.markdown('</div>', unsafe_allow_html=True)
 
