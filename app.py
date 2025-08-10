@@ -219,6 +219,25 @@ class StyleManager:
             font-weight: 600 !important;
         }
         
+        /* Radio button text styling */
+        .stRadio div[role="radiogroup"] label {
+            color: #FFFFFF !important;
+        }
+        
+        .stRadio div[role="radiogroup"] span {
+            color: #FFFFFF !important;
+        }
+        
+        /* Selected radio button */
+        .stRadio div[role="radiogroup"] input:checked + div {
+            color: #F0B90B !important;
+        }
+        
+        /* Radio button hover state */
+        .stRadio div[role="radiogroup"] label:hover {
+            color: #F0B90B !important;
+        }
+        
         .stRadio div[role="radiogroup"] {
             display: flex;
             flex-direction: column;
