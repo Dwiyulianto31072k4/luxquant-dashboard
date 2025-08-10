@@ -1014,6 +1014,25 @@ class UIComponents:
             """, unsafe_allow_html=True)
     
     @staticmethod
+    def render_action_buttons():
+        """Render responsive action buttons with better styling"""
+        st.markdown('<h3 style="color: #F0B90B; font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 700; margin: 2rem 0 1.5rem 0; text-align: center;">🚀 Take Action</h3>', unsafe_allow_html=True)
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button("📊 SUBSCRIBE NOW", use_container_width=True):
+                st.success("🎉 Redirecting to subscription page...")
+        
+        with col2:
+            if st.button("📦 VIEW PACKAGES", use_container_width=True):
+                st.info("📋 Displaying available packages...")
+        
+        with col3:
+            if st.button("📞 CONTACT SUPPORT", use_container_width=True):
+                st.info("💬 Connecting to support team...")
+    
+    @staticmethod
     def render_footer():
         """Render responsive footer with better contrast"""
         st.markdown("---")
