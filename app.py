@@ -1081,8 +1081,7 @@ class LuxQuantDashboard:
         if load_button:
             self._handle_data_loading(period)
         
-        # Action buttons and footer
-        self.ui.render_action_buttons()
+        # Footer only
         self.ui.render_footer()
     
     def _handle_data_loading(self, period: str):
