@@ -12,11 +12,22 @@ import re
 from pathlib import Path
 from typing import Optional, Dict, Any
 
+# ==================== HELPER FUNCTIONS ====================
+def get_secret(key, default=None):
+    """Prefer ENV (Render), then st.secrets (local), else default."""
+    v = os.getenv(key)
+    if v is not None:
+        return v
+    try:
+        return st.secrets.get(key, default)
+    except Exception:
+        return default
+
 # ==================== CONFIGURATION ====================
 class Config:
     """Central configuration class"""
-    SPREADSHEET_ID = "1g3XL1EllHoWV3jhmi7gT3at6MtCNTJBo8DQ1WyWhMEo"
-    SHEET_NAME = "Sheet1"
+    SPREADSHEET_ID = get_secret("SPREADSHEET_ID", "1g3XL1EllHoWV3jhmi7gT3at6MtCNTJBo8DQ1WyWhMEo")
+    SHEET_NAME = get_secret("SHEET_NAME", "Sheet1")
     
     # Binance Color Scheme - Enhanced for better readability
     COLORS = {
@@ -448,20 +459,91 @@ class DataManager:
             raise e
     
     def _get_credentials(self) -> Dict[str, Any]:
-        """Get Google Sheets credentials from various sources"""
-        if "gcp_service_account" in st.secrets:
-            return st.secrets["gcp_service_account"]
-        elif "credentials_json" in st.secrets:
-            if isinstance(st.secrets["credentials_json"], dict):
-                return st.secrets["credentials_json"]
-            else:
-                return json.loads(st.secrets["credentials_json"])
-        else:
-            credentials_json_str = os.environ.get("CREDENTIALS_JSON")
-            if credentials_json_str:
-                return json.loads(credentials_json_str)
-            else:
-                raise ValueError("Google Sheets credentials not found")
+        """Get Google Sheets credentials – prefer secret files, then ENV, then st.secrets locally."""
+
+        # 1) Secret Files di Render (recommended untuk production)
+        secret_file_paths = [
+            "/etc/secrets/google_credentials.json",
+            "/etc/secrets/credentials.json", 
+            "/etc/secrets/service_account.json"
+        ]
+        
+        for file_path in secret_file_paths:
+            try:
+                if os.path.exists(file_path):
+                    print(f"✅ Found secret file: {file_path}")
+                    with open(file_path, 'r') as f:
+                        credentials_data = json.load(f)
+                    print("✅ Successfully loaded credentials from secret file")
+                    return credentials_data
+            except Exception as e:
+                print(f"❌ Error reading secret file {file_path}: {e}")
+
+        # 2) Single JSON in ENV (backup method)
+        cj = get_secret("CREDENTIALS_JSON")
+        if cj:
+            print("✅ Using CREDENTIALS_JSON environment variable")
+            # Hapus quote pembungkus jika ada
+            cj = cj.strip().strip("'").strip('"')
+            return json.loads(cj)
+
+        # 3) Compose from split ENV vars (nama lowercase seperti di Render)
+        fields = [
+            "type","project_id","private_key_id","private_key","client_email","client_id",
+            "auth_uri","token_uri","auth_provider_x509_cert_url","client_x509_cert_url","universe_domain"
+        ]
+        data = {k: get_secret(k) for k in fields}
+
+        # Normalisasi private_key (ubah \n menjadi newline asli)
+        pk = data.get("private_key")
+        if pk:
+            print("✅ Found private_key in environment variables")
+            # Jika Render menyimpan \n literal, ini akan menjadi baris sebenarnya
+            data["private_key"] = pk.replace("\\n", "\n").strip()
+
+            # Jangan karang header/footer—cukup validasi ada BEGIN/END
+            if "BEGIN PRIVATE KEY" not in data["private_key"] or "END PRIVATE KEY" not in data["private_key"]:
+                raise ValueError("Service account private_key missing BEGIN/END headers.")
+
+        # Set default values for missing optional fields
+        data["type"] = data.get("type") or "service_account"
+        data["auth_uri"] = data.get("auth_uri") or "https://accounts.google.com/o/oauth2/auth"
+        data["token_uri"] = data.get("token_uri") or "https://oauth2.googleapis.com/token"
+        data["auth_provider_x509_cert_url"] = data.get("auth_provider_x509_cert_url") or "https://www.googleapis.com/oauth2/v1/certs"
+
+        required = ["type","project_id","private_key","client_email","token_uri"]
+        if all(data.get(k) for k in required):
+            print("✅ Successfully constructed credentials from individual environment variables")
+            # Filter out None values
+            return {k: v for k, v in data.items() if v is not None}
+
+        # 4) Fallback untuk lokal: st.secrets (jangan disentuh di Render)
+        try:
+            if "gcp_service_account" in st.secrets:
+                print("✅ Using Streamlit gcp_service_account secrets")
+                v = st.secrets["gcp_service_account"]
+                return dict(v)
+            if "credentials_json" in st.secrets:
+                print("✅ Using Streamlit credentials_json secrets")
+                v = st.secrets["credentials_json"]
+                return v if isinstance(v, dict) else json.loads(v)
+        except Exception as e:
+            print(f"Streamlit secrets not available: {e}")
+
+        # Debug info
+        available_env_vars = [k for k in fields if get_secret(k)]
+        available_secret_files = [f for f in secret_file_paths if os.path.exists(f)]
+        
+        print(f"Available environment variables: {available_env_vars}")
+        print(f"Available secret files: {available_secret_files}")
+        
+        raise ValueError("""
+        Google Sheets credentials not found in any location:
+        1. Secret files: /etc/secrets/google_credentials.json
+        2. Environment variables: CREDENTIALS_JSON
+        3. Individual env vars: type, project_id, private_key, client_email
+        4. Streamlit secrets (local only)
+        """)
     
     def get_sheet_data(self) -> Optional[pd.DataFrame]:
         """Get all data from Google Sheets and convert to DataFrame"""
